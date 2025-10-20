@@ -1,5 +1,5 @@
 <?php
-// Laporan.php — tabel saja + tombol Cetak PDF (path ke /laporan/laporan_pdf.php)
+// Laporan.php — versi dinamis stok & periode
 $koneksi = new mysqli("localhost", "root", "", "fazza_food");
 if ($koneksi->connect_errno) { die("Gagal konek DB: ".$koneksi->connect_error); }
 
@@ -7,13 +7,14 @@ $kategori = $_GET['kategori'] ?? 'semua';
 $periode  = $_GET['periode']  ?? 'bulanan'; // harian|mingguan|bulanan
 $tanggal  = $_GET['tanggal']  ?? date('Y-m-01');
 
-// BASE URL project (mis. /fahmi_food) → link absolut ke /laporan/laporan_pdf.php
-$baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\'); // ex: /fahmi_food
+// BASE URL
+$baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
 $pdfUrl  = $baseUrl . '/laporan/laporan_pdf.php'
          . '?kategori=' . urlencode($kategori)
          . '&periode='  . urlencode($periode)
          . '&tanggal='  . urlencode($tanggal);
 
+// ===== Fungsi bantu =====
 function periodEnd($periode, $start) {
   switch ($periode) {
     case 'harian':   return date('Y-m-d', strtotime($start.' +1 day -1 second'));
@@ -26,13 +27,37 @@ function labelPeriode($periode, $start) {
   if ($periode==='mingguan') return date('d M Y', strtotime($start)).' – '.date('d M Y', strtotime($start.' +6 days'));
   return date('F Y', strtotime($start));
 }
-function buildRanges($periode, $start, $rows=7) {
-  $ranges=[]; $cursor=$start;
-  for($i=0;$i<$rows;$i++){
-    $ranges[]=[
+function qScalar($db,$sql){ $r=$db->query($sql); if(!$r)return 0; $row=$r->fetch_row(); return $row? (float)$row[0]:0; }
+function qRows($db,$sql){ $out=[]; $r=$db->query($sql); if($r){ while($x=$r->fetch_assoc()) $out[]=$x; } return $out; }
+
+// ===== Bangun range dinamis =====
+function buildRangesDynamic($db,$periode,$start){
+  $ranges=[];
+  $cursor = $start;
+
+  // cari tanggal terakhir yang punya data produksi/distribusi
+  $lastData = qScalar($db, "
+    SELECT UNIX_TIMESTAMP(GREATEST(
+      IFNULL(MAX(COALESCE(pr.tgl_produksi, j.tanggal)), '0000-00-00'),
+      IFNULL(MAX(d.tanggal_pesanan), '0000-00-00')
+    ))
+    FROM produksi pr
+    LEFT JOIN jadwal j ON j.id_jadwal = pr.id_jadwal
+    LEFT JOIN distribusi d ON 1=1
+  ");
+
+  // jika tidak ada data sama sekali
+  if(!$lastData){ 
+    $ranges[] = ['start'=>$cursor,'end'=>periodEnd($periode,$cursor),'label'=>labelPeriode($periode,$cursor)];
+    return $ranges;
+  }
+
+  $lastDate = date('Y-m-d',$lastData);
+  while(strtotime($cursor) <= strtotime($lastDate)){
+    $ranges[] = [
       'start'=>date('Y-m-d',strtotime($cursor)),
-      'end'  =>date('Y-m-d',strtotime(periodEnd($periode,$cursor))),
-      'label'=>labelPeriode($periode,$cursor),
+      'end'=>date('Y-m-d',strtotime(periodEnd($periode,$cursor))),
+      'label'=>labelPeriode($periode,$cursor)
     ];
     if ($periode==='harian')       $cursor = date('Y-m-d', strtotime($cursor.' +1 day'));
     elseif ($periode==='mingguan') $cursor = date('Y-m-d', strtotime($cursor.' +7 days'));
@@ -40,19 +65,20 @@ function buildRanges($periode, $start, $rows=7) {
   }
   return $ranges;
 }
-function qScalar($db,$sql){ $r=$db->query($sql); if(!$r)return 0; $row=$r->fetch_row(); return $row? (float)$row[0]:0; }
-function qRows($db,$sql){ $out=[]; $r=$db->query($sql); if($r){ while($x=$r->fetch_assoc()) $out[]=$x; } return $out; }
 
+// ===== Ambil data utama =====
 $data = [];
 $periodRows = [];
 
 if ($kategori==='semua') {
-  $ranges = buildRanges($periode, $tanggal, 7);
+  $ranges = buildRangesDynamic($koneksi, $periode, $tanggal);
+  $currentMonth = date('Y-m');
+
   foreach ($ranges as $r) {
     $start = $koneksi->real_escape_string($r['start']);
     $end   = $koneksi->real_escape_string($r['end']);
 
-    // PRODUKSI & DIKEMAS: gunakan COALESCE(tgl_produksi, jadwal.tanggal)
+    // PRODUKSI & DIKEMAS
     $produksi = qScalar(
       $koneksi,
       "SELECT IFNULL(SUM(pr.jumlah_produksi),0)
@@ -68,11 +94,28 @@ if ($kategori==='semua') {
        WHERE COALESCE(pr.tgl_produksi, j.tanggal) BETWEEN '$start' AND '$end'"
     );
 
-    $distribusi    = qScalar($koneksi, "SELECT IFNULL(SUM(jumlah_pesanan),0) FROM distribusi WHERE tanggal_pesanan IS NOT NULL AND tanggal_pesanan BETWEEN '$start' AND '$end'");
-    $stok_snapshot = qScalar($koneksi, "SELECT IFNULL(SUM(jumlah_stok),0) FROM stok WHERE status_stok IN ('Sudah dipacking','Siap dipacking','Siap dikemas') AND jumlah_stok>0");
-    $gaji          = qScalar($koneksi, "SELECT IFNULL(SUM(total_gaji),0) FROM riwayat_gaji WHERE tanggal BETWEEN '$start' AND '$end' AND (keterangan='Dibayar' OR keterangan='dibayar')");
-    $pekerja       = qScalar($koneksi, "SELECT COUNT(*) FROM pekerja_lepas");
-    $pesanan       = $distribusi;
+    $distribusi = qScalar($koneksi, "
+      SELECT IFNULL(SUM(jumlah_pesanan),0)
+      FROM distribusi
+      WHERE tanggal_pesanan IS NOT NULL AND tanggal_pesanan BETWEEN '$start' AND '$end'
+    ");
+    // === stok hanya untuk bulan berjalan ===
+    $stok_snapshot = (date('Y-m', strtotime($r['start'])) == $currentMonth)
+      ? qScalar($koneksi, "
+          SELECT IFNULL(SUM(jumlah_stok),0)
+          FROM stok
+          WHERE status_stok IN ('Sudah dipacking','Siap dipacking','Siap dikemas') AND jumlah_stok>0
+        ")
+      : 0;
+
+    $gaji = qScalar($koneksi, "
+      SELECT IFNULL(SUM(total_gaji),0)
+      FROM riwayat_gaji
+      WHERE tanggal BETWEEN '$start' AND '$end'
+        AND (keterangan='Dibayar' OR keterangan='dibayar')
+    ");
+    $pekerja = qScalar($koneksi, "SELECT COUNT(*) FROM pekerja_lepas");
+    $pesanan = $distribusi;
 
     $periodRows[] = [
       'Periode'       => $r['label'],
@@ -141,7 +184,6 @@ if ($kategori==='semua') {
 ?>
 
 <style>
-  /* Efek hover dropdown kuning */
   select:hover, select:focus {
     border-color: #FFD700 !important;
     outline: none !important;
@@ -178,7 +220,6 @@ if ($kategori==='semua') {
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- Tombol Cetak PDF -->
         <a href="<?= htmlspecialchars($pdfUrl) ?>" target="_blank" rel="noopener"
           class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 mt-1 inline-flex items-center"
           title="Cetak / Simpan PDF">

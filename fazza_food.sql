@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 12 Agu 2025 pada 10.56
--- Versi server: 10.4.28-MariaDB
--- Versi PHP: 8.2.4
+-- Generation Time: Oct 20, 2025 at 06:38 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `salsa_ff`
+-- Database: `fazza_food`
 --
 
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `admin`
+-- Table structure for table `admin`
 --
 
 CREATE TABLE `admin` (
@@ -34,7 +34,7 @@ CREATE TABLE `admin` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `admin`
+-- Dumping data for table `admin`
 --
 
 INSERT INTO `admin` (`id_admin`, `username`, `password`) VALUES
@@ -43,7 +43,7 @@ INSERT INTO `admin` (`id_admin`, `username`, `password`) VALUES
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `distribusi`
+-- Table structure for table `distribusi`
 --
 
 CREATE TABLE `distribusi` (
@@ -56,25 +56,14 @@ CREATE TABLE `distribusi` (
   `status_pengiriman` varchar(50) DEFAULT NULL,
   `nama_distributor` varchar(100) DEFAULT NULL,
   `alamat_distributor` varchar(255) DEFAULT NULL,
-  `id_distributor` int(11) DEFAULT NULL
+  `id_distributor` int(11) DEFAULT NULL,
+  `id_admin` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `distribusi`
---
-
-INSERT INTO `distribusi` (`id_distribusi`, `nama_toko`, `tanggal_distribusi`, `id_produk`, `jumlah_pesanan`, `tanggal_pesanan`, `status_pengiriman`, `nama_distributor`, `alamat_distributor`, `id_distributor`) VALUES
-(3, NULL, NULL, 4901, 600, '2025-09-06', 'Diproses', 'Toko Merpati', 'Solo', NULL),
-(7, NULL, NULL, 4602, 300, '2025-08-15', 'Diproses', 'Toko Jaya', 'Semarang', NULL),
-(11, NULL, NULL, 4901, 500, '2025-08-10', 'Diproses', 'Toko Pink', 'Banjarnegara', NULL),
-(12, NULL, NULL, 4602, 200, '2025-08-10', 'Diproses', 'Toko Pink', 'Banjarnegara', NULL),
-(15, NULL, NULL, 4901, 500, '2025-08-21', 'Diproses', 'Toko Biru', 'Kaliwiro', NULL),
-(16, NULL, NULL, 4602, 400, '2025-08-21', 'Diproses', 'Toko Biru', 'Kaliwiro', NULL);
 
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `distribusi_detail`
+-- Table structure for table `distribusi_detail`
 --
 
 CREATE TABLE `distribusi_detail` (
@@ -88,7 +77,7 @@ CREATE TABLE `distribusi_detail` (
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `jadwal`
+-- Table structure for table `jadwal`
 --
 
 CREATE TABLE `jadwal` (
@@ -102,25 +91,16 @@ CREATE TABLE `jadwal` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `jadwal`
+-- Dumping data for table `jadwal`
 --
 
 INSERT INTO `jadwal` (`id_jadwal`, `tanggal`, `waktu`, `waktu_mulai`, `waktu_selesai`, `jenis_kegiatan`, `id_admin`) VALUES
-(3, '2025-08-07', NULL, '13:22:00', '16:22:00', 'Produksi', 1),
-(4, '2025-08-01', NULL, '13:30:00', '15:30:00', 'Produksi', 1),
-(5, '2025-08-02', NULL, '13:30:00', '15:30:00', 'Produksi', 1),
-(6, '2025-08-01', NULL, '16:30:00', '19:30:00', 'Pengemasan', 1),
-(7, '2025-08-02', NULL, '17:30:00', '19:30:00', 'Pengemasan', 1),
-(8, '2025-08-05', NULL, '08:00:00', '12:00:00', 'Produksi', 1),
-(9, '2025-08-08', NULL, '12:00:00', '19:00:00', 'Produksi', 1),
-(10, '2025-08-09', NULL, '10:00:00', '12:30:00', 'Produksi', 1),
-(12, '2025-08-11', NULL, '07:00:00', '12:00:00', 'Produksi', 1),
-(13, '2025-08-10', NULL, '10:07:00', '13:00:00', 'Produksi', 1);
+(14, '2025-10-18', NULL, '07:00:00', '16:00:00', 'Produksi', 1);
 
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `laporan`
+-- Table structure for table `laporan`
 --
 
 CREATE TABLE `laporan` (
@@ -134,13 +114,14 @@ CREATE TABLE `laporan` (
   `total_reject` int(11) DEFAULT NULL,
   `total_gaji` int(11) DEFAULT NULL,
   `total_produksi` int(11) DEFAULT NULL,
-  `rekap_jadwal` text DEFAULT NULL
+  `rekap_jadwal` text DEFAULT NULL,
+  `id_admin` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `pekerja_lepas`
+-- Table structure for table `pekerja_lepas`
 --
 
 CREATE TABLE `pekerja_lepas` (
@@ -153,23 +134,16 @@ CREATE TABLE `pekerja_lepas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `pekerja_lepas`
+-- Dumping data for table `pekerja_lepas`
 --
 
 INSERT INTO `pekerja_lepas` (`id_pekerja`, `nama_pekerja`, `kontak`, `alamat`, `status_pembayaran`, `id_admin`) VALUES
-(1, 'Zahwa', '085729269751', 'Kalibeber', 'Belum Dibayar', 1),
-(2, 'Fatimah', '088216476342', 'Mojotengah', 'Belum Dibayar', 1),
-(3, 'Wanti', '082164903970', 'Krasak', 'Belum Dibayar', 1),
-(4, 'Ardi', '082232192297', 'Garung', 'Belum Dibayar', 1),
-(5, 'Edwin', '089922347764', 'Krasak', 'Dibayar', 1),
-(6, 'Yudhis', '087766547789', 'Kalibeber', 'Belum Dibayar', 1),
-(7, 'Salma', '085729269751', 'kalibeber', 'Belum Dibayar', 1),
-(8, 'slsa', '0999', 'wonosobo', 'Belum Dibayar', 1);
+(9, 'Rizka', '1234567890', 'Kejajar', 'Dibayar', 1);
 
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `pembayaran_gaji`
+-- Table structure for table `pembayaran_gaji`
 --
 
 CREATE TABLE `pembayaran_gaji` (
@@ -185,7 +159,7 @@ CREATE TABLE `pembayaran_gaji` (
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `pengambilan_stok`
+-- Table structure for table `pengambilan_stok`
 --
 
 CREATE TABLE `pengambilan_stok` (
@@ -203,7 +177,7 @@ CREATE TABLE `pengambilan_stok` (
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `pengambilan_stok_pekerja`
+-- Table structure for table `pengambilan_stok_pekerja`
 --
 
 CREATE TABLE `pengambilan_stok_pekerja` (
@@ -217,20 +191,16 @@ CREATE TABLE `pengambilan_stok_pekerja` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `pengambilan_stok_pekerja`
+-- Dumping data for table `pengambilan_stok_pekerja`
 --
 
 INSERT INTO `pengambilan_stok_pekerja` (`id_pengambilan`, `id_pekerja`, `id_stok`, `tanggal_ambil`, `jumlah_kg`, `total_gaji`, `status`) VALUES
-(1, 4, 5, '2025-08-08', 20, 50000, 'Sedang dikerjakan'),
-(2, 7, 6, '2025-08-08', 30, 75000, 'Sedang dikerjakan'),
-(3, 2, 6, '2025-08-08', 20, 50000, 'Sedang dikerjakan'),
-(4, 5, 7, '2025-08-09', 40, 100000, 'Sedang dikerjakan'),
-(5, 3, 7, '2025-08-09', 50, 125000, 'Sedang dikerjakan');
+(6, 9, 11, '2025-10-20', 50, 125000, 'Sedang dikerjakan');
 
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `produk`
+-- Table structure for table `produk`
 --
 
 CREATE TABLE `produk` (
@@ -239,7 +209,7 @@ CREATE TABLE `produk` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `produk`
+-- Dumping data for table `produk`
 --
 
 INSERT INTO `produk` (`id_produk`, `nama_produk`) VALUES
@@ -249,7 +219,7 @@ INSERT INTO `produk` (`id_produk`, `nama_produk`) VALUES
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `produksi`
+-- Table structure for table `produksi`
 --
 
 CREATE TABLE `produksi` (
@@ -264,20 +234,14 @@ CREATE TABLE `produksi` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `produksi`
+-- Dumping data for table `produksi`
 --
 
 INSERT INTO `produksi` (`id_produksi`, `id_produk`, `id_jadwal`, `id_admin`, `jumlah_produksi`, `tgl_produksi`, `jumlah_dikemas`, `jumlah_reject`) VALUES
-(3, 4901, 4, 1, 500, '2025-08-01', 450, 50),
-(4, 4602, 5, 1, 200, '2025-08-02', 198, 2),
-(5, 4602, 8, 1, 300, '2025-08-05', 297, 3),
-(6, 4602, 9, 1, 100, '2025-08-08', 90, 10),
-(7, 4602, 10, 1, 300, '2025-08-09', 285, 15),
-(8, 4602, 12, 1, 300, '2025-08-11', 285, 15),
-(9, 4602, 13, 1, 900, '2025-08-10', 890, 10);
+(10, 4901, 14, 1, 200, '2025-10-18', 200, 0);
 
 --
--- Trigger `produksi`
+-- Triggers `produksi`
 --
 DELIMITER $$
 CREATE TRIGGER `trg_produksi_fill_date_ins` BEFORE INSERT ON `produksi` FOR EACH ROW BEGIN
@@ -303,7 +267,7 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `riwayat_gaji`
+-- Table structure for table `riwayat_gaji`
 --
 
 CREATE TABLE `riwayat_gaji` (
@@ -317,26 +281,23 @@ CREATE TABLE `riwayat_gaji` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `riwayat_gaji`
+-- Dumping data for table `riwayat_gaji`
 --
 
 INSERT INTO `riwayat_gaji` (`id_gaji`, `id_pekerja`, `tanggal`, `berat_barang_kg`, `tarif_per_kg`, `total_gaji`, `keterangan`) VALUES
-(1, 4, '2025-08-08', 20.00, 2500, 50000, 'Belum Dibayar'),
-(2, 7, '2025-08-08', 30.00, 2500, 75000, 'Belum Dibayar'),
-(3, 2, '2025-08-08', 20.00, 2500, 50000, 'Belum Dibayar'),
-(4, 5, '2025-08-09', 40.00, 2500, 100000, 'Dibayar'),
-(5, 3, '2025-08-09', 50.00, 2500, 125000, 'Belum Dibayar');
+(6, 9, '2025-10-20', 50.00, 2500, 125000, 'Dibayar');
 
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `stok`
+-- Table structure for table `stok`
 --
 
 CREATE TABLE `stok` (
   `id_stok` int(11) NOT NULL,
   `id_produk` int(11) NOT NULL,
   `id_produksi` int(11) DEFAULT NULL,
+  `id_admin` int(11) DEFAULT NULL,
   `jumlah_stok` int(11) DEFAULT NULL,
   `sisa_stok` int(11) DEFAULT NULL,
   `status_stok` varchar(50) DEFAULT NULL,
@@ -344,26 +305,20 @@ CREATE TABLE `stok` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `stok`
+-- Dumping data for table `stok`
 --
 
-INSERT INTO `stok` (`id_stok`, `id_produk`, `id_produksi`, `jumlah_stok`, `sisa_stok`, `status_stok`, `jumlah_reject`) VALUES
-(1, 4901, 3, 50, NULL, 'Sudah dipacking', NULL),
-(2, 4901, 3, 100, NULL, 'Sudah dipacking', NULL),
-(3, 4901, 3, 300, NULL, 'Siap dipacking', NULL),
-(4, 4602, 5, 297, NULL, 'Siap dipacking', NULL),
-(5, 4602, 4, 80, NULL, 'Siap dikemas', NULL),
-(6, 4602, 6, 35, NULL, 'Siap dikemas', NULL),
-(7, 4602, 7, 195, NULL, 'Siap dikemas', NULL),
-(8, 4602, 8, 100, NULL, 'Siap dikemas', NULL),
-(9, 4602, 8, 150, NULL, 'Siap dikemas', NULL),
-(10, 4602, 9, 870, NULL, 'Siap dikemas', NULL);
+INSERT INTO `stok` (`id_stok`, `id_produk`, `id_produksi`, `id_admin`, `jumlah_stok`, `sisa_stok`, `status_stok`, `jumlah_reject`) VALUES
+(6, 4602, NULL, NULL, 35, NULL, 'Siap dikemas', NULL),
+(7, 4602, NULL, NULL, 195, NULL, 'Siap dikemas', NULL),
+(8, 4602, NULL, NULL, 100, NULL, 'Siap dikemas', NULL),
+(11, 4901, 10, NULL, 150, NULL, 'Siap dikemas', NULL);
 
 -- --------------------------------------------------------
 
 --
--- Stand-in struktur untuk tampilan `v_produksi_fix`
--- (Lihat di bawah untuk tampilan aktual)
+-- Stand-in structure for view `v_produksi_fix`
+-- (See below for the actual view)
 --
 CREATE TABLE `v_produksi_fix` (
 `id_produksi` int(11)
@@ -378,7 +333,7 @@ CREATE TABLE `v_produksi_fix` (
 -- --------------------------------------------------------
 
 --
--- Struktur untuk view `v_produksi_fix`
+-- Structure for view `v_produksi_fix`
 --
 DROP TABLE IF EXISTS `v_produksi_fix`;
 
@@ -389,20 +344,21 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 
 --
--- Indeks untuk tabel `admin`
+-- Indexes for table `admin`
 --
 ALTER TABLE `admin`
   ADD PRIMARY KEY (`id_admin`);
 
 --
--- Indeks untuk tabel `distribusi`
+-- Indexes for table `distribusi`
 --
 ALTER TABLE `distribusi`
   ADD PRIMARY KEY (`id_distribusi`),
-  ADD KEY `id_produk` (`id_produk`);
+  ADD KEY `id_produk` (`id_produk`),
+  ADD KEY `id_admin` (`id_admin`);
 
 --
--- Indeks untuk tabel `distribusi_detail`
+-- Indexes for table `distribusi_detail`
 --
 ALTER TABLE `distribusi_detail`
   ADD PRIMARY KEY (`id_detail`),
@@ -411,33 +367,35 @@ ALTER TABLE `distribusi_detail`
   ADD KEY `id_stok` (`id_stok`);
 
 --
--- Indeks untuk tabel `jadwal`
+-- Indexes for table `jadwal`
 --
 ALTER TABLE `jadwal`
   ADD PRIMARY KEY (`id_jadwal`),
   ADD KEY `fk_jadwal_admin` (`id_admin`);
 
 --
--- Indeks untuk tabel `laporan`
+-- Indexes for table `laporan`
 --
 ALTER TABLE `laporan`
-  ADD PRIMARY KEY (`id_laporan`);
+  ADD PRIMARY KEY (`id_laporan`),
+  ADD KEY `id_admin` (`id_admin`);
 
 --
--- Indeks untuk tabel `pekerja_lepas`
+-- Indexes for table `pekerja_lepas`
 --
 ALTER TABLE `pekerja_lepas`
-  ADD PRIMARY KEY (`id_pekerja`);
+  ADD PRIMARY KEY (`id_pekerja`),
+  ADD KEY `id_admin` (`id_admin`);
 
 --
--- Indeks untuk tabel `pembayaran_gaji`
+-- Indexes for table `pembayaran_gaji`
 --
 ALTER TABLE `pembayaran_gaji`
   ADD PRIMARY KEY (`id_pembayaran`),
   ADD KEY `id_pekerja` (`id_pekerja`);
 
 --
--- Indeks untuk tabel `pengambilan_stok`
+-- Indexes for table `pengambilan_stok`
 --
 ALTER TABLE `pengambilan_stok`
   ADD PRIMARY KEY (`id_pengambilan`),
@@ -445,7 +403,7 @@ ALTER TABLE `pengambilan_stok`
   ADD KEY `id_pekerja` (`id_pekerja`);
 
 --
--- Indeks untuk tabel `pengambilan_stok_pekerja`
+-- Indexes for table `pengambilan_stok_pekerja`
 --
 ALTER TABLE `pengambilan_stok_pekerja`
   ADD PRIMARY KEY (`id_pengambilan`),
@@ -453,128 +411,130 @@ ALTER TABLE `pengambilan_stok_pekerja`
   ADD KEY `id_stok` (`id_stok`);
 
 --
--- Indeks untuk tabel `produk`
+-- Indexes for table `produk`
 --
 ALTER TABLE `produk`
   ADD PRIMARY KEY (`id_produk`);
 
 --
--- Indeks untuk tabel `produksi`
+-- Indexes for table `produksi`
 --
 ALTER TABLE `produksi`
   ADD PRIMARY KEY (`id_produksi`),
   ADD KEY `id_produk` (`id_produk`),
-  ADD KEY `fk_produksi_jadwal` (`id_jadwal`);
+  ADD KEY `fk_produksi_jadwal` (`id_jadwal`),
+  ADD KEY `id_admin` (`id_admin`);
 
 --
--- Indeks untuk tabel `riwayat_gaji`
+-- Indexes for table `riwayat_gaji`
 --
 ALTER TABLE `riwayat_gaji`
   ADD PRIMARY KEY (`id_gaji`),
   ADD KEY `id_pekerja` (`id_pekerja`);
 
 --
--- Indeks untuk tabel `stok`
+-- Indexes for table `stok`
 --
 ALTER TABLE `stok`
   ADD PRIMARY KEY (`id_stok`),
   ADD KEY `id_produk` (`id_produk`),
-  ADD KEY `fk_stok_produksi` (`id_produksi`);
+  ADD KEY `fk_stok_produksi` (`id_produksi`),
+  ADD KEY `id_admin` (`id_admin`);
 
 --
--- AUTO_INCREMENT untuk tabel yang dibuang
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT untuk tabel `admin`
+-- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
   MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT untuk tabel `distribusi`
+-- AUTO_INCREMENT for table `distribusi`
 --
 ALTER TABLE `distribusi`
   MODIFY `id_distribusi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
--- AUTO_INCREMENT untuk tabel `distribusi_detail`
+-- AUTO_INCREMENT for table `distribusi_detail`
 --
 ALTER TABLE `distribusi_detail`
   MODIFY `id_detail` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `jadwal`
+-- AUTO_INCREMENT for table `jadwal`
 --
 ALTER TABLE `jadwal`
-  MODIFY `id_jadwal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id_jadwal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
--- AUTO_INCREMENT untuk tabel `laporan`
+-- AUTO_INCREMENT for table `laporan`
 --
 ALTER TABLE `laporan`
   MODIFY `id_laporan` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `pekerja_lepas`
+-- AUTO_INCREMENT for table `pekerja_lepas`
 --
 ALTER TABLE `pekerja_lepas`
-  MODIFY `id_pekerja` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_pekerja` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
--- AUTO_INCREMENT untuk tabel `pembayaran_gaji`
+-- AUTO_INCREMENT for table `pembayaran_gaji`
 --
 ALTER TABLE `pembayaran_gaji`
   MODIFY `id_pembayaran` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `pengambilan_stok`
+-- AUTO_INCREMENT for table `pengambilan_stok`
 --
 ALTER TABLE `pengambilan_stok`
   MODIFY `id_pengambilan` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `pengambilan_stok_pekerja`
+-- AUTO_INCREMENT for table `pengambilan_stok_pekerja`
 --
 ALTER TABLE `pengambilan_stok_pekerja`
-  MODIFY `id_pengambilan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_pengambilan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
--- AUTO_INCREMENT untuk tabel `produk`
+-- AUTO_INCREMENT for table `produk`
 --
 ALTER TABLE `produk`
   MODIFY `id_produk` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4902;
 
 --
--- AUTO_INCREMENT untuk tabel `produksi`
+-- AUTO_INCREMENT for table `produksi`
 --
 ALTER TABLE `produksi`
-  MODIFY `id_produksi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_produksi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT untuk tabel `riwayat_gaji`
+-- AUTO_INCREMENT for table `riwayat_gaji`
 --
 ALTER TABLE `riwayat_gaji`
-  MODIFY `id_gaji` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_gaji` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
--- AUTO_INCREMENT untuk tabel `stok`
+-- AUTO_INCREMENT for table `stok`
 --
 ALTER TABLE `stok`
-  MODIFY `id_stok` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id_stok` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
--- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
+-- Constraints for dumped tables
 --
 
 --
--- Ketidakleluasaan untuk tabel `distribusi`
+-- Constraints for table `distribusi`
 --
 ALTER TABLE `distribusi`
   ADD CONSTRAINT `distribusi_ibfk_1` FOREIGN KEY (`id_produk`) REFERENCES `produk` (`id_produk`);
 
 --
--- Ketidakleluasaan untuk tabel `distribusi_detail`
+-- Constraints for table `distribusi_detail`
 --
 ALTER TABLE `distribusi_detail`
   ADD CONSTRAINT `distribusi_detail_ibfk_1` FOREIGN KEY (`id_distribusi`) REFERENCES `distribusi` (`id_distribusi`) ON DELETE CASCADE,
@@ -582,46 +542,46 @@ ALTER TABLE `distribusi_detail`
   ADD CONSTRAINT `distribusi_detail_ibfk_3` FOREIGN KEY (`id_stok`) REFERENCES `stok` (`id_stok`);
 
 --
--- Ketidakleluasaan untuk tabel `jadwal`
+-- Constraints for table `jadwal`
 --
 ALTER TABLE `jadwal`
   ADD CONSTRAINT `fk_jadwal_admin` FOREIGN KEY (`id_admin`) REFERENCES `admin` (`id_admin`);
 
 --
--- Ketidakleluasaan untuk tabel `pembayaran_gaji`
+-- Constraints for table `pembayaran_gaji`
 --
 ALTER TABLE `pembayaran_gaji`
   ADD CONSTRAINT `pembayaran_gaji_ibfk_1` FOREIGN KEY (`id_pekerja`) REFERENCES `pekerja_lepas` (`id_pekerja`);
 
 --
--- Ketidakleluasaan untuk tabel `pengambilan_stok`
+-- Constraints for table `pengambilan_stok`
 --
 ALTER TABLE `pengambilan_stok`
   ADD CONSTRAINT `pengambilan_stok_ibfk_1` FOREIGN KEY (`id_stok`) REFERENCES `stok` (`id_stok`),
   ADD CONSTRAINT `pengambilan_stok_ibfk_2` FOREIGN KEY (`id_pekerja`) REFERENCES `pekerja_lepas` (`id_pekerja`);
 
 --
--- Ketidakleluasaan untuk tabel `pengambilan_stok_pekerja`
+-- Constraints for table `pengambilan_stok_pekerja`
 --
 ALTER TABLE `pengambilan_stok_pekerja`
   ADD CONSTRAINT `pengambilan_stok_pekerja_ibfk_1` FOREIGN KEY (`id_pekerja`) REFERENCES `pekerja_lepas` (`id_pekerja`) ON DELETE CASCADE,
   ADD CONSTRAINT `pengambilan_stok_pekerja_ibfk_2` FOREIGN KEY (`id_stok`) REFERENCES `stok` (`id_stok`) ON DELETE CASCADE;
 
 --
--- Ketidakleluasaan untuk tabel `produksi`
+-- Constraints for table `produksi`
 --
 ALTER TABLE `produksi`
   ADD CONSTRAINT `fk_produksi_jadwal` FOREIGN KEY (`id_jadwal`) REFERENCES `jadwal` (`id_jadwal`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `produksi_ibfk_1` FOREIGN KEY (`id_produk`) REFERENCES `produk` (`id_produk`);
 
 --
--- Ketidakleluasaan untuk tabel `riwayat_gaji`
+-- Constraints for table `riwayat_gaji`
 --
 ALTER TABLE `riwayat_gaji`
   ADD CONSTRAINT `riwayat_gaji_ibfk_1` FOREIGN KEY (`id_pekerja`) REFERENCES `pekerja_lepas` (`id_pekerja`) ON DELETE CASCADE;
 
 --
--- Ketidakleluasaan untuk tabel `stok`
+-- Constraints for table `stok`
 --
 ALTER TABLE `stok`
   ADD CONSTRAINT `fk_stok_produksi` FOREIGN KEY (`id_produksi`) REFERENCES `produksi` (`id_produksi`) ON DELETE SET NULL ON UPDATE CASCADE,

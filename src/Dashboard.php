@@ -137,7 +137,7 @@ $jadwalList = $pdo->query("
                     <td class="py-4 px-4"><?php echo htmlspecialchars(date('H:i', strtotime($jadwal['waktu_mulai']))) . ' - ' . htmlspecialchars(date('H:i', strtotime($jadwal['waktu_selesai']))); ?></td>
                     <td class="py-4 px-4"><?php echo htmlspecialchars($jadwal['jenis_kegiatan']); ?></td>
                     <td class="py-4 px-4 text-center w-28">
-                      <button class="text-blue-600 hover:text-blue-800 p-2 editBtn"
+                      <button class="text-yellow-600 hover:text-yellow-800 p-2 editBtn"
                         data-id="<?php echo $jadwal['id_jadwal']; ?>"
                         data-tanggal="<?php echo $jadwal['tanggal']; ?>"
                         data-mulai="<?php echo $jadwal['waktu_mulai']; ?>"
@@ -163,7 +163,7 @@ $jadwalList = $pdo->query("
       <!-- Stats Cards (unchanged) -->
       <div class="lg:col-span-1 space-y-6">
         <div onclick="window.location.href='Index.php?page=distribusi';" class="bg-white shadow-md rounded-lg p-5 flex items-center cursor-pointer hover:shadow-lg transition-shadow duration-300">
-          <div class="bg-blue-100 text-blue-600 rounded-full p-4 mr-4">
+          <div class="bg-yellow-100 text-yellow-600 rounded-full p-4 mr-4">
             <i class="fas fa-box-open fa-2x"></i>
           </div>
           <div>
@@ -206,7 +206,7 @@ $jadwalList = $pdo->query("
 <!-- MODAL JADWAL LENGKAP - Admin column removed -->
 <div id="modalJadwalLengkap" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
   <div class="bg-white max-w-5xl w-full rounded-lg shadow-lg p-6 overflow-y-auto max-h-[90vh] relative">
-    <h3 class="text-xl font-bold mb-4 text-blue-800">Jadwal Lengkap</h3>
+    <h3 class="text-xl font-bold mb-4 text-yellow-800">Jadwal Lengkap</h3>
     <button id="closeModalJadwalLengkap" class="absolute top-4 right-6 text-gray-500 hover:text-red-500 text-2xl font-bold">&times;</button>
     <div class="overflow-x-auto">
       <table class="w-full text-sm text-left text-gray-700">
@@ -240,19 +240,19 @@ $jadwalList = $pdo->query("
       <div class="space-y-4">
         <div>
           <label for="tanggal" class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-          <input type="date" id="tanggal" name="tanggal" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input type="date" id="tanggal" name="tanggal" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Waktu</label>
           <div class="flex space-x-2 items-center">
-            <input type="time" id="jam_mulai" name="jam_mulai" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Jam mulai" />
+            <input type="time" id="jam_mulai" name="jam_mulai" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" aria-label="Jam mulai" />
             <span class="text-gray-500">-</span>
-            <input type="time" id="jam_selesai" name="jam_selesai" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Jam selesai" />
+            <input type="time" id="jam_selesai" name="jam_selesai" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" aria-label="Jam selesai" />
           </div>
         </div>
         <div>
           <label for="jenis_kegiatan" class="block text-sm font-medium text-gray-700 mb-1">Jenis Kegiatan</label>
-          <select id="jenis_kegiatan" name="jenis_kegiatan" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select id="jenis_kegiatan" name="jenis_kegiatan" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
             <option value="" disabled selected>Pilih Jenis Kegiatan</option>
             <option value="Produksi">Produksi</option>
             <option value="Pengemasan">Pengemasan</option>
@@ -262,7 +262,7 @@ $jadwalList = $pdo->query("
       </div>
       <div class="flex justify-end space-x-3 mt-8">
         <button type="button" id="cancelBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors">Batal</button>
-        <button type="submit" name="submit_jadwal" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">Simpan</button>
+        <button type="submit" name="submit_jadwal" class="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-colors">Simpan</button>
       </div>
     </form>
   </div>
