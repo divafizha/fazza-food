@@ -59,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id_stok = $_POST['id_stok_edit'];
         $status_stok = $_POST['status_stok'];
         $jumlah_stok = (int)$_POST['jumlah_stok'];
-        // Edit hanya boleh jika jumlah tidak melebihi sisa total (untuk kemudahan edit manual, tdk dibatasi ketat)
         $sql = "UPDATE stok SET status_stok = ?, jumlah_stok = ? WHERE id_stok = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$status_stok, $jumlah_stok, $id_stok]);
@@ -82,14 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Baca data stok
 $sql_stok = "SELECT s.id_stok, s.id_produk, s.id_produksi, p.nama_produk, s.status_stok, s.jumlah_stok
-             FROM stok s 
-             JOIN produk p ON s.id_produk = p.id_produk 
-             ORDER BY s.id_stok DESC";
+              FROM stok s 
+              JOIN produk p ON s.id_produk = p.id_produk 
+              ORDER BY s.id_stok DESC";
 $stok_list = $pdo->query($sql_stok)->fetchAll(PDO::FETCH_ASSOC);
 
 $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumlah 
-                             FROM stok 
-                             GROUP BY status_stok")->fetchAll(PDO::FETCH_ASSOC);
+                              FROM stok 
+                              GROUP BY status_stok")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <main class="flex-1 bg-gray-100">
@@ -119,8 +118,6 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
       <thead class="bg-yellow-100 sticky top-0 z-10">
         <tr class="text-black text-left">
           <th class="border border-gray-300 px-3 py-2">No.</th>
-          <th class="border border-gray-300 px-3 py-2">ID Produksi</th>
-          <th class="border border-gray-300 px-3 py-2">ID Produk</th>
           <th class="border border-gray-300 px-3 py-2">Nama Produk</th>
           <th class="border border-gray-300 px-3 py-2">Status Stok</th>
           <th class="border border-gray-300 px-3 py-2">Jumlah Stok</th>
@@ -130,7 +127,7 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
       <tbody class="text-left">
         <?php if (empty($stok_list)): ?>
           <tr>
-            <td colspan="7" class="border border-gray-300 px-3 py-4 text-center text-gray-500">
+            <td colspan="5" class="border border-gray-300 px-3 py-4 text-center text-gray-500">
               Belum ada data stok.
             </td>
           </tr>
@@ -138,8 +135,6 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
           <?php foreach ($stok_list as $index => $item): ?>
             <tr>
               <td class="border border-gray-300 px-3 py-2"><?php echo $index + 1; ?>.</td>
-              <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($item['id_produksi']); ?></td>
-              <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($item['id_produk']); ?></td>
               <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($item['nama_produk']); ?></td>
               <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($item['status_stok']); ?></td>
               <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($item['jumlah_stok']); ?> kg</td>
@@ -189,13 +184,11 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
     </div>
   </section>
 
-  <!-- MODAL TAMBAH STOK DARI PRODUKSI -->
   <div id="modalTambah" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <form action="" method="POST" class="bg-white p-6 shadow-md rounded w-80 relative">
       <button type="button" class="btnClose absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl font-bold" aria-label="Close modal">&times;</button>
       <h2 class="text-black font-semibold text-lg mb-4">Tambah Stok Dari Produksi</h2>
       <input type="hidden" name="action" value="tambah">
-
       <div class="mb-4">
         <label for="id_produksi_tambah" class="block text-sm font-medium text-gray-700 mb-1">Pilih Slot Produksi</label>
         <select name="id_produksi" id="id_produksi_tambah" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm" required>
@@ -245,19 +238,16 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
     </form>
   </div>
 
-  <!-- MODAL EDIT -->
   <div id="modalEdit" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <form action="" method="POST" class="bg-white p-6 shadow-md rounded w-80 relative">
       <button type="button" class="btnClose absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl font-bold" aria-label="Close modal">&times;</button>
       <h2 class="text-black font-semibold text-lg mb-4">Edit Stok</h2>
       <input type="hidden" name="action" value="edit">
       <input type="hidden" name="id_stok_edit" id="id_stok_edit">
-
       <div class="mb-4">
         <label for="nama_produk_edit" class="block text-sm font-medium text-gray-700 mb-1">Nama Produk</label>
         <input type="text" id="nama_produk_edit" class="w-full px-3 py-2 border bg-gray-200 text-gray-500 rounded" readonly />
       </div>
-
       <div class="mb-4">
         <label for="status_stok_edit" class="block text-sm font-medium text-gray-700 mb-1">Status Stok</label>
         <select name="status_stok" id="status_stok_edit" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm" required>
@@ -267,17 +257,14 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
           <option value="Reject">Reject</option>
         </select>
       </div>
-
       <div class="mb-6">
         <label for="jumlah_stok_edit" class="block text-sm font-medium text-gray-700 mb-1">Jumlah (kg)</label>
         <input type="number" name="jumlah_stok" id="jumlah_stok_edit" min="0" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm" required />
       </div>
-
       <button type="submit" name="submit" class="w-full bg-yellow-400 text-white py-2 rounded">Simpan Perubahan</button>
     </form>
   </div>
 
-  <!-- MODAL HAPUS -->
   <div id="modalHapus" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <div class="w-[320px] border border-gray-300 shadow-md p-6 bg-white rounded-md relative">
       <button type="button" class="btnClose absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl font-bold" aria-label="Close modal">&times;</button>
@@ -298,11 +285,9 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
     const modalTambah = document.getElementById('modalTambah');
     const modalEdit = document.getElementById('modalEdit');
     const modalHapus = document.getElementById('modalHapus');
-
     const btnTambahStok = document.getElementById('btnTambahStok');
     const btnCancelHapus = document.querySelector('.btnCancelHapus');
     const allModals = [modalTambah, modalEdit, modalHapus];
-
     const openModal = (modal) => modal.classList.remove('hidden');
     const closeModal = (modal) => modal.classList.add('hidden');
 
@@ -349,7 +334,8 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
       button.addEventListener('click', (e) => {
         const data = e.target.dataset;
         document.getElementById('id_stok_edit').value = data.idStok;
-        document.getElementById('nama_produk_edit').value = `${data.namaProduk} (ID: ${data.idProduk})`;
+        // ## BARIS YANG DIUBAH ##
+        document.getElementById('nama_produk_edit').value = data.namaProduk;
         document.getElementById('status_stok_edit').value = data.status;
         document.getElementById('jumlah_stok_edit').value = data.jumlah_stok;
         openModal(modalEdit);
