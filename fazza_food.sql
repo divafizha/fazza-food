@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 20, 2025 at 06:38 AM
+-- Generation Time: Oct 20, 2025 at 10:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -60,6 +60,16 @@ CREATE TABLE `distribusi` (
   `id_admin` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `distribusi`
+--
+
+INSERT INTO `distribusi` (`id_distribusi`, `nama_toko`, `tanggal_distribusi`, `id_produk`, `jumlah_pesanan`, `tanggal_pesanan`, `status_pengiriman`, `nama_distributor`, `alamat_distributor`, `id_distributor`, `id_admin`) VALUES
+(23, NULL, NULL, 4901, 150, '2025-10-22', 'Dikirim', 'Toko Amin', 'Klaten', NULL, NULL),
+(24, NULL, NULL, 4602, 150, '2025-10-22', 'Dikirim', 'Toko Amin', 'Klaten', NULL, NULL),
+(25, NULL, NULL, 4901, 200, '2025-10-20', 'Diproses', 'Toko Sumber Rejeki', 'Pasar Pagi Wonosobo', NULL, NULL),
+(26, NULL, NULL, 4602, 200, '2025-10-20', 'Diproses', 'Toko Sumber Rejeki', 'Pasar Pagi Wonosobo', NULL, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -95,7 +105,13 @@ CREATE TABLE `jadwal` (
 --
 
 INSERT INTO `jadwal` (`id_jadwal`, `tanggal`, `waktu`, `waktu_mulai`, `waktu_selesai`, `jenis_kegiatan`, `id_admin`) VALUES
-(14, '2025-10-18', NULL, '07:00:00', '16:00:00', 'Produksi', 1);
+(14, '2025-10-18', NULL, '07:00:00', '16:00:00', 'Produksi', 1),
+(15, '2025-10-18', NULL, '08:00:00', '16:00:00', 'Pengemasan', 1),
+(16, '2025-10-20', NULL, '13:00:00', '16:00:00', 'Distribusi', 1),
+(17, '2025-11-12', NULL, '07:00:00', '16:00:00', 'Distribusi', 1),
+(18, '2025-10-21', NULL, '08:00:00', '16:00:00', 'Pengemasan', 1),
+(19, '2025-10-19', NULL, '05:00:00', '12:00:00', 'Produksi', 1),
+(20, '2025-09-21', NULL, '03:00:00', '12:00:00', 'Produksi', 1);
 
 -- --------------------------------------------------------
 
@@ -138,7 +154,10 @@ CREATE TABLE `pekerja_lepas` (
 --
 
 INSERT INTO `pekerja_lepas` (`id_pekerja`, `nama_pekerja`, `kontak`, `alamat`, `status_pembayaran`, `id_admin`) VALUES
-(9, 'Rizka', '1234567890', 'Kejajar', 'Dibayar', 1);
+(10, 'Enjel', '0987654321', 'Yogyakarta', 'Belum Dibayar', 1),
+(11, 'Rizka', '1234567890', 'Ngasinan', 'Belum Dibayar', 1),
+(12, 'Nanang', '09865432', 'Leksono', 'Dibayar', 1),
+(13, 'Salbiah', '08123456789', 'Kauman, RT 01/RW 04, Wonosobo', 'Belum Dibayar', 1);
 
 -- --------------------------------------------------------
 
@@ -195,7 +214,10 @@ CREATE TABLE `pengambilan_stok_pekerja` (
 --
 
 INSERT INTO `pengambilan_stok_pekerja` (`id_pengambilan`, `id_pekerja`, `id_stok`, `tanggal_ambil`, `jumlah_kg`, `total_gaji`, `status`) VALUES
-(6, 9, 11, '2025-10-20', 50, 125000, 'Sedang dikerjakan');
+(7, 10, 8, '2025-10-20', 50, 125000, 'Sedang dikerjakan'),
+(8, 12, 13, '2025-10-20', 50, 125000, 'Sedang dikerjakan'),
+(9, 11, 14, '2025-10-20', 50, 125000, 'Sedang dikerjakan'),
+(10, 13, 14, '2025-10-20', 100, 250000, 'Sedang dikerjakan');
 
 -- --------------------------------------------------------
 
@@ -238,7 +260,9 @@ CREATE TABLE `produksi` (
 --
 
 INSERT INTO `produksi` (`id_produksi`, `id_produk`, `id_jadwal`, `id_admin`, `jumlah_produksi`, `tgl_produksi`, `jumlah_dikemas`, `jumlah_reject`) VALUES
-(10, 4901, 14, 1, 200, '2025-10-18', 200, 0);
+(11, 4602, 19, 1, 500, '2025-10-19', 449, 51),
+(12, 4602, 14, 1, 200, '2025-10-18', 152, 48),
+(13, 4901, 20, 1, 350, '2025-09-21', 350, 0);
 
 --
 -- Triggers `produksi`
@@ -285,7 +309,10 @@ CREATE TABLE `riwayat_gaji` (
 --
 
 INSERT INTO `riwayat_gaji` (`id_gaji`, `id_pekerja`, `tanggal`, `berat_barang_kg`, `tarif_per_kg`, `total_gaji`, `keterangan`) VALUES
-(6, 9, '2025-10-20', 50.00, 2500, 125000, 'Dibayar');
+(7, 10, '2025-10-20', 50.00, 2500, 125000, 'Belum Dibayar'),
+(8, 12, '2025-10-20', 50.00, 2500, 125000, 'Dibayar'),
+(9, 11, '2025-10-20', 50.00, 2500, 125000, 'Belum Dibayar'),
+(10, 13, '2025-10-20', 100.00, 2500, 250000, 'Belum Dibayar');
 
 -- --------------------------------------------------------
 
@@ -311,8 +338,11 @@ CREATE TABLE `stok` (
 INSERT INTO `stok` (`id_stok`, `id_produk`, `id_produksi`, `id_admin`, `jumlah_stok`, `sisa_stok`, `status_stok`, `jumlah_reject`) VALUES
 (6, 4602, NULL, NULL, 35, NULL, 'Siap dikemas', NULL),
 (7, 4602, NULL, NULL, 195, NULL, 'Siap dikemas', NULL),
-(8, 4602, NULL, NULL, 100, NULL, 'Siap dikemas', NULL),
-(11, 4901, 10, NULL, 150, NULL, 'Siap dikemas', NULL);
+(8, 4602, NULL, NULL, 50, NULL, 'Siap dikemas', NULL),
+(11, 4901, NULL, NULL, 150, NULL, 'Siap dikemas', NULL),
+(12, 4602, 12, NULL, 100, NULL, 'Siap dikemas', NULL),
+(13, 4602, 12, NULL, 2, NULL, 'Siap dipacking', NULL),
+(14, 4901, 13, NULL, 200, NULL, 'Siap dikemas', NULL);
 
 -- --------------------------------------------------------
 
@@ -455,7 +485,7 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `distribusi`
 --
 ALTER TABLE `distribusi`
-  MODIFY `id_distribusi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id_distribusi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `distribusi_detail`
@@ -467,7 +497,7 @@ ALTER TABLE `distribusi_detail`
 -- AUTO_INCREMENT for table `jadwal`
 --
 ALTER TABLE `jadwal`
-  MODIFY `id_jadwal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id_jadwal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `laporan`
@@ -479,7 +509,7 @@ ALTER TABLE `laporan`
 -- AUTO_INCREMENT for table `pekerja_lepas`
 --
 ALTER TABLE `pekerja_lepas`
-  MODIFY `id_pekerja` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_pekerja` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `pembayaran_gaji`
@@ -497,7 +527,7 @@ ALTER TABLE `pengambilan_stok`
 -- AUTO_INCREMENT for table `pengambilan_stok_pekerja`
 --
 ALTER TABLE `pengambilan_stok_pekerja`
-  MODIFY `id_pengambilan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_pengambilan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `produk`
@@ -509,19 +539,19 @@ ALTER TABLE `produk`
 -- AUTO_INCREMENT for table `produksi`
 --
 ALTER TABLE `produksi`
-  MODIFY `id_produksi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id_produksi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `riwayat_gaji`
 --
 ALTER TABLE `riwayat_gaji`
-  MODIFY `id_gaji` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_gaji` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `stok`
 --
 ALTER TABLE `stok`
-  MODIFY `id_stok` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id_stok` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- Constraints for dumped tables

@@ -30,7 +30,7 @@ $logoPath = 'assets/logo.png';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title><?= ucfirst($page) ?> - Fahmi Food</title>
+  <title><?= ucfirst($page) ?> - Fazza Food</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 </head>
@@ -70,7 +70,9 @@ $logoPath = 'assets/logo.png';
   <!-- Main Content -->
   <main class="flex-1 flex flex-col">
     <header class="sticky top-0 bg-[#FFD700] text-[#642714] px-8 py-6 shadow-md z-40">
-      <h1 class="text-xl font-bold"><?= ucfirst($page) ?></h1>
+      <h1 class="text-xl font-bold">
+        <?= ucwords(str_replace('_', ' ', $page)) ?>
+      </h1>
     </header>
 
     <div class="p-8 overflow-y-auto">

@@ -139,7 +139,7 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
               <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($item['status_stok']); ?></td>
               <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($item['jumlah_stok']); ?> kg</td>
               <td class="border border-gray-300 px-3 py-2 space-x-2">
-                <button class="btnEdit bg-yellow-400 text-white text-xs px-3 py-1 rounded"
+                <button class="btnEdit bg-yellow-400 text-yellow-900 text-xs px-3 py-1 rounded"
                   data-id-stok="<?php echo $item['id_stok']; ?>"
                   data-id-produk="<?php echo $item['id_produk']; ?>"
                   data-id-produksi="<?php echo $item['id_produksi']; ?>"
@@ -191,7 +191,7 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
       <input type="hidden" name="action" value="tambah">
       <div class="mb-4">
         <label for="id_produksi_tambah" class="block text-sm font-medium text-gray-700 mb-1">Pilih Slot Produksi</label>
-        <select name="id_produksi" id="id_produksi_tambah" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm" required>
+        <select name="id_produksi" id="id_produksi_tambah" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
           <option value="" disabled selected>-- Pilih Produksi --</option>
           <?php foreach ($produksi_list as $p): ?>
             <option value="<?= $p['id_produksi'] ?>"
@@ -207,26 +207,26 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
       <input type="hidden" name="id_produk" id="id_produk_tambah_hidden">
       <div class="mb-2">
         <label>Nama Produk</label>
-        <input type="text" id="nama_produk_auto" class="w-full px-3 py-2 bg-gray-100" readonly>
+        <input type="text" id="nama_produk_auto" class="w-full px-3 py-2 bg-gray-100 rounded shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-400" readonly>
       </div>
       <div class="mb-2 flex gap-2">
         <div class="flex-1">
           <label>Jumlah Dikemas</label>
-          <input type="text" id="jumlah_dikemas_auto" class="w-full px-3 py-2 bg-gray-100" readonly>
+          <input type="text" id="jumlah_dikemas_auto" class="w-full px-3 py-2 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400" readonly>
         </div>
         <div class="flex-1">
           <label>Sisa Produksi</label>
-          <input type="text" id="sisa_dikemas_auto" class="w-full px-3 py-2 bg-gray-100" readonly>
+          <input type="text" id="sisa_dikemas_auto" class="w-full px-3 py-2 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400" readonly>
         </div>
       </div>
       <div class="mb-2">
         <label>Jumlah Stok Diambil <span id="maxStokInfo" class="text-xs text-gray-500"></span></label>
-        <input type="number" name="jumlah_stok" id="jumlah_stok_tambah" class="w-full px-3 py-2 border border-gray-300 rounded" min="1" required />
+        <input type="number" name="jumlah_stok" id="jumlah_stok_tambah" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400" min="1" required />
         <div id="jumlahError" class="text-xs text-red-600 mt-1 hidden"></div>
       </div>
       <div class="mb-4">
         <label>Status Stok</label>
-        <select name="status_stok" id="status_stok_tambah" class="w-full px-3 py-2 border border-gray-300 rounded" required>
+        <select name="status_stok" id="status_stok_tambah" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
           <option value="" disabled selected>-- Pilih Status --</option>
           <option value="Siap dikemas">Siap dikemas</option>
           <option value="Siap dipacking">Siap dipacking</option>
@@ -234,7 +234,7 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
           <option value="Reject">Reject</option>
         </select>
       </div>
-      <button type="submit" name="submit" class="w-full bg-yellow-400 text-white py-2 rounded">Simpan</button>
+      <button type="submit" name="submit" class="w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-300 py-2 rounded">Simpan</button>
     </form>
   </div>
 
@@ -250,7 +250,7 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
       </div>
       <div class="mb-4">
         <label for="status_stok_edit" class="block text-sm font-medium text-gray-700 mb-1">Status Stok</label>
-        <select name="status_stok" id="status_stok_edit" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm" required>
+        <select name="status_stok" id="status_stok_edit" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
           <option value="Siap dikemas">Siap dikemas</option>
           <option value="Siap dipacking">Siap dipacking</option>
           <option value="Sudah dipacking">Sudah dipacking</option>
@@ -259,9 +259,9 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
       </div>
       <div class="mb-6">
         <label for="jumlah_stok_edit" class="block text-sm font-medium text-gray-700 mb-1">Jumlah (kg)</label>
-        <input type="number" name="jumlah_stok" id="jumlah_stok_edit" min="0" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm" required />
+        <input type="number" name="jumlah_stok" id="jumlah_stok_edit" min="0" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required />
       </div>
-      <button type="submit" name="submit" class="w-full bg-yellow-400 text-white py-2 rounded">Simpan Perubahan</button>
+      <button type="submit" name="submit" class="w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-300 py-2 rounded">Simpan Perubahan</button>
     </form>
   </div>
 

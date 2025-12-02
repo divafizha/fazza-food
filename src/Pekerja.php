@@ -226,7 +226,7 @@ try {
               </span>
             </td>
             <td class="border border-gray-300 px-3 py-2 space-x-1 flex items-center justify-center ">
-              <button class="btnAmbilStok bg-yellow-600 text-white text-xs px-2 py-1 rounded inline-flex items-center gap-1"
+              <button class="btnAmbilStok bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded inline-flex items-center gap-1"
                 data-id-pekerja="<?php echo (int)$pekerja['id_pekerja']; ?>"
                 data-nama-pekerja="<?php echo htmlspecialchars($pekerja['nama_pekerja']); ?>">
                 <i class="fas fa-box-open"></i> Ambil Stok
@@ -294,7 +294,7 @@ try {
       <div class="mb-3 text-sm">Tarif: <span class="font-mono">Rp. <?= number_format(TARIF_PER_KG, 0, ',', '.'); ?> / kg</span></div>
       <div class="mb-3 text-sm">Total Gaji: <span id="ambilStokTotalGaji" class="font-mono font-bold text-yellow-800">Rp. 0</span></div>
 
-      <button type="submit" class="w-full bg-yellow-600 text-white py-2 rounded">Ambil & Catat Gaji</button>
+      <button type="submit" class="w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-300 py-2 rounded">Ambil & Catat Gaji</button>
     </form>
   </div>
 
@@ -307,7 +307,7 @@ try {
       <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Nama</label><input type="text" name="nama_pekerja" class="w-full px-3 py-2 border border-gray-300 rounded" required /></div>
       <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Kontak</label><input type="text" name="kontak" class="w-full px-3 py-2 border border-gray-300 rounded" required /></div>
       <div class="mb-6"><label class="block text-sm font-medium text-gray-700 mb-1">Alamat</label><textarea name="alamat" class="w-full px-3 py-2 border border-gray-300 rounded" required></textarea></div>
-      <button type="submit" class="w-full bg-yellow-700 text-white py-2 rounded">Simpan</button>
+      <button type="submit" class="w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-300 py-2 rounded">Simpan</button>
     </form>
   </div>
 
@@ -321,7 +321,7 @@ try {
       <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Nama</label><input type="text" name="nama_pekerja" id="nama_pekerja_edit" class="w-full px-3 py-2 border border-gray-300 rounded" required /></div>
       <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Kontak</label><input type="text" name="kontak" id="kontak_edit" class="w-full px-3 py-2 border border-gray-300 rounded" required /></div>
       <div class="mb-6"><label class="block text-sm font-medium text-gray-700 mb-1">Alamat</label><textarea name="alamat" id="alamat_edit" class="w-full px-3 py-2 border border-gray-300 rounded" required></textarea></div>
-      <button type="submit" class="w-full bg-yellow-700 text-white py-2 rounded">Simpan Perubahan</button>
+      <button type="submit" class="w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-300 py-2 rounded">Simpan Perubahan</button>
     </form>
   </div>
 

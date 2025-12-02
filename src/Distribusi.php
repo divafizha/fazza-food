@@ -60,8 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       $_SESSION['notif'] = ['pesan' => 'Pesanan berhasil ditambahkan!', 'tipe' => 'sukses'];
 
-    } elseif ($action === 'edit_grup') {
-      // Edit seluruh grup: hapus baris lama (by key lama), insert ulang dengan header + detail baru
+    } elseif ($action === 'edit_Pesanan') {
+      // Edit seluruh Pesanan: hapus baris lama (by key lama), insert ulang dengan header + detail baru
       $old_nama   = $_POST['key_nama_old']   ?? '';
       $old_alamat = $_POST['key_alamat_old'] ?? '';
       $old_tgl    = $_POST['key_tanggal_old']?? '';
@@ -99,9 +99,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       if ($inserted === 0) throw new Exception('Detail produk tidak valid.');
 
       $pdo->commit();
-      $_SESSION['notif'] = ['pesan' => 'Grup berhasil diperbarui!', 'tipe' => 'sukses'];
+      $_SESSION['notif'] = ['pesan' => 'Pesanan berhasil diperbarui!', 'tipe' => 'sukses'];
 
-    } elseif ($action === 'hapus_grup') {
+    } elseif ($action === 'hapus_Pesanan') {
       $old_nama   = $_POST['key_nama_old']   ?? '';
       $old_alamat = $_POST['key_alamat_old'] ?? '';
       $old_tgl    = $_POST['key_tanggal_old']?? '';
@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $pdo->prepare("DELETE FROM distribusi WHERE nama_distributor=? AND alamat_distributor=? AND tanggal_pesanan=? AND status_pengiriman=?")
           ->execute([$old_nama, $old_alamat, $old_tgl, $old_status]);
 
-      $_SESSION['notif'] = ['pesan' => 'Grup berhasil dihapus.', 'tipe' => 'sukses'];
+      $_SESSION['notif'] = ['pesan' => 'Pesanan berhasil dihapus.', 'tipe' => 'sukses'];
     }
   } catch (Exception $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) { $pdo->rollBack(); }
@@ -156,7 +156,7 @@ $produk_options = $pdo->query("
     <?php endif; ?>
 
     <button id="btnTambah" class="mb-4 inline-flex items-center bg-yellow-300 hover:bg-yellow-400 text-yellow-900 text-sm font-bold  px-4 py-2 rounded" type="button">
-      <i class="fas fa-plus"></i>&nbsp;Input Pesanan
+      <i class="fas fa-plus"></i>&nbsp; Tambah Pesanan
     </button>
 
     <table class="w-full border border-gray-300 text-sm bg-white">
@@ -228,7 +228,7 @@ $produk_options = $pdo->query("
               <td class="border border-gray-300 px-3 py-2 align-top" rowspan="<?= $rowspan ?>"><?= htmlspecialchars($g['header']['status_pengiriman']) ?></td>
               <td class="border border-gray-300 px-3 py-2 align-top" rowspan="<?= $rowspan ?>">
                 <button
-                  class="btnEditGrup px-3 py-1 text-xs text-yellow-900 rounded"
+                  class="btnEditPesanan px-3 py-1 text-xs text-yellow-900 rounded"
                   style="background-color:#FFD700;"
                   data-nama-old="<?= htmlspecialchars($g['header']['nama_distributor'], ENT_QUOTES) ?>"
                   data-alamat-old="<?= htmlspecialchars($g['header']['alamat_distributor'], ENT_QUOTES) ?>"
@@ -238,7 +238,7 @@ $produk_options = $pdo->query("
                 >Edit</button>
 
                 <button
-                  class="btnHapusGrup bg-red-700 text-white text-xs px-3 py-1 rounded ml-2"
+                  class="btnHapusPesanan bg-red-700 text-white text-xs px-3 py-1 rounded ml-2"
                   data-nama-old="<?= htmlspecialchars($g['header']['nama_distributor'], ENT_QUOTES) ?>"
                   data-alamat-old="<?= htmlspecialchars($g['header']['alamat_distributor'], ENT_QUOTES) ?>"
                   data-tanggal-old="<?= htmlspecialchars($g['header']['tanggal_pesanan'], ENT_QUOTES) ?>"
@@ -257,12 +257,12 @@ $produk_options = $pdo->query("
     </table>
   </section>
 
-  <!-- MODAL TAMBAH / EDIT GRUP -->
+  <!-- MODAL TAMBAH / EDIT Pesanan -->
   <div id="modalForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <form action="" method="POST" id="formDistribusi" class="bg-white p-6 rounded w-[700px] max-w-[92vw] relative shadow">
       <input type="hidden" name="action" id="formAction" value="tambah">
 
-      <!-- kunci grup lama (untuk edit_grup / hapus_grup) -->
+      <!-- kunci Pesanan lama (untuk edit_Pesanan / hapus_Pesanan) -->
       <input type="hidden" name="key_nama_old" id="key_nama_old">
       <input type="hidden" name="key_alamat_old" id="key_alamat_old">
       <input type="hidden" name="key_tanggal_old" id="key_tanggal_old">
@@ -275,19 +275,19 @@ $produk_options = $pdo->query("
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label class="block text-sm text-gray-700 mb-1">Nama Distributor</label>
-          <input type="text" name="nama_distributor" id="formNama" required class="w-full border px-3 py-2 rounded">
+          <input type="text" name="nama_distributor" id="formNama" required class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400">
         </div>
         <div>
           <label class="block text-sm text-gray-700 mb-1">Tanggal Pesanan</label>
-          <input type="date" name="tgl_pesanan" id="formTanggal" class="w-full border px-3 py-2 rounded" value="<?= date('Y-m-d') ?>">
+          <input type="date" name="tgl_pesanan" id="formTanggal" class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400" value="<?= date('Y-m-d') ?>">
         </div>
         <div class="md:col-span-2">
           <label class="block text-sm text-gray-700 mb-1">Alamat Distributor</label>
-          <input type="text" name="alamat_distributor" id="formAlamat" required class="w-full border px-3 py-2 rounded">
+          <input type="text" name="alamat_distributor" id="formAlamat" required class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400">
         </div>
         <div>
           <label class="block text-sm text-gray-700 mb-1">Status Pengiriman</label>
-          <select name="status_pengiriman" id="formStatus" required class="w-full border px-3 py-2 rounded">
+          <select name="status_pengiriman" id="formStatus" required class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400">
             <option value="">-- Pilih Status --</option>
             <option value="Diproses">Diproses</option>
             <option value="Dikirim">Dikirim</option>
@@ -300,31 +300,31 @@ $produk_options = $pdo->query("
       <div class="mt-4">
         <div class="text-sm font-semibold text-gray-800 mb-2">Detail Produk</div>
         <div id="produkListMulti"></div>
-        <button type="button" id="btnAddRow" class="mt-3 bg-yellow-700 text-white text-xs px-3 py-1 rounded">+ Tambah Produk</button>
+        <button type="button" id="btnAddRow" class="mt-3 bg-yellow-400 text-yellow-900 text-xs px-3 py-1 rounded">+ Tambah Produk</button>
       </div>
 
       <div class="mt-5">
-        <button type="submit" class="w-full bg-yellow-700 text-white py-2 rounded">Simpan</button>
+        <button type="submit" class="w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-500 py-2 rounded">Simpan</button>
       </div>
     </form>
   </div>
 
-  <!-- MODAL HAPUS GRUP -->
-  <div id="modalHapusGrup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+  <!-- MODAL HAPUS Pesanan -->
+  <div id="modalHapusPesanan" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
     <div class="w-[340px] border border-gray-300 shadow-md p-6 bg-white rounded-md relative">
-      <button type="button" id="btnCloseHapusGrup" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700" aria-label="Close modal">
+      <button type="button" id="btnCloseHapusPesanan" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700" aria-label="Close modal">
         <i class="fas fa-times"></i>
       </button>
-      <h2 class="font-semibold text-black mb-3 text-lg">Hapus Semua Item di Grup?</h2>
+      <h2 class="font-semibold text-black mb-3 text-lg">Hapus Semua Item di Pesanan?</h2>
       <p class="text-gray-700 mb-5 text-sm">Seluruh item dengan header yang sama akan dihapus.</p>
       <form action="" method="POST" class="flex justify-end space-x-3">
-        <input type="hidden" name="action" value="hapus_grup">
+        <input type="hidden" name="action" value="hapus_Pesanan">
         <input type="hidden" name="key_nama_old" id="hg_nama">
         <input type="hidden" name="key_alamat_old" id="hg_alamat">
         <input type="hidden" name="key_tanggal_old" id="hg_tanggal">
         <input type="hidden" name="key_status_old" id="hg_status">
-        <button type="button" id="btnCancelHapusGrup" class="border border-gray-300 text-gray-900 text-sm font-medium rounded px-4 py-2 hover:bg-gray-100">Batal</button>
-        <button type="submit" class="bg-red-600 text-white text-sm font-medium rounded px-4 py-2 hover:bg-red-700">Ya, Hapus Grup</button>
+        <button type="button" id="btnCancelHapusPesanan" class="border border-gray-300 text-gray-900 text-sm font-medium rounded px-4 py-2 hover:bg-gray-100">Batal</button>
+        <button type="submit" class="bg-red-600 text-white text-sm font-medium rounded px-4 py-2 hover:bg-red-700">Ya, Hapus Pesanan</button>
       </form>
     </div>
   </div>
@@ -333,17 +333,17 @@ $produk_options = $pdo->query("
 <script>
   // ===== Modal =====
   const modal          = document.getElementById('modalForm');
-  const modalHapusGrup = document.getElementById('modalHapusGrup');
+  const modalHapusPesanan = document.getElementById('modalHapusPesanan');
 
   const openModal  = () => modal.classList.remove('hidden');
   const closeModal = () => modal.classList.add('hidden');
-  const closeModalHapusGrup = () => modalHapusGrup.classList.add('hidden');
+  const closeModalHapusPesanan = () => modalHapusPesanan.classList.add('hidden');
 
   // close via tombol X & klik overlay
   document.addEventListener('click', (e) => {
     if (e.target.classList && e.target.classList.contains('btnClose')) closeModal();
     if (e.target === modal) closeModal();
-    if (e.target === modalHapusGrup) closeModalHapusGrup();
+    if (e.target === modalHapusPesanan) closeModalHapusPesanan();
   });
 
   // ====== Elemen form ======
@@ -365,14 +365,14 @@ $produk_options = $pdo->query("
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
         <div>
           <label class="block text-sm text-gray-700 mb-1">Produk</label>
-          <select name="detail[${id}][id_produk]" class="w-full border px-3 py-2 rounded" required>
+          <select name="detail[${id}][id_produk]" class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
             <option value="">-- Pilih Produk --</option>
             ${produkOptions}
           </select>
         </div>
         <div>
           <label class="block text-sm text-gray-700 mb-1">Jumlah (kg)</label>
-          <input type="number" name="detail[${id}][jumlah]" min="1" class="w-full border px-3 py-2 rounded" required>
+          <input type="number" name="detail[${id}][jumlah]" min="1" class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
         </div>
         <div class="text-right md:text-left">
           <button type="button" class="bg-red-600 text-white text-xs px-3 py-1 rounded btnRemoveRow">Hapus</button>
@@ -407,12 +407,12 @@ $produk_options = $pdo->query("
     }
   });
 
-  // ====== Tambah Grup ======
+  // ====== Tambah Pesanan ======
   btnTambah.onclick = () => {
     document.getElementById('formTitle').textContent = 'Tambah Pesanan';
     document.getElementById('formAction').value = 'tambah';
 
-    // kosongkan kunci grup (bukan edit)
+    // kosongkan kunci Pesanan (bukan edit)
     ['key_nama_old','key_alamat_old','key_tanggal_old','key_status_old'].forEach(id => document.getElementById(id).value = '');
 
     // reset header
@@ -428,10 +428,10 @@ $produk_options = $pdo->query("
     openModal();
   };
 
-  // ====== Edit / Hapus Grup ======
+  // ====== Edit / Hapus Pesanan ======
   function attachGroupHandlers() {
-    // Edit Grup
-    document.querySelectorAll('.btnEditGrup').forEach(btn => {
+    // Edit Pesanan
+    document.querySelectorAll('.btnEditPesanan').forEach(btn => {
       btn.onclick = () => {
         const n = btn.dataset.namaOld || '';
         const a = btn.dataset.alamatOld || '';
@@ -439,8 +439,8 @@ $produk_options = $pdo->query("
         const s = btn.dataset.statusOld || '';
         const items = JSON.parse(btn.dataset.items || '[]'); // [{id_produk, jumlah}, ...]
 
-        document.getElementById('formTitle').textContent = 'Edit Grup';
-        document.getElementById('formAction').value = 'edit_grup';
+        document.getElementById('formTitle').textContent = 'Edit Pesanan';
+        document.getElementById('formAction').value = 'edit_Pesanan';
 
         // isi header default = header lama
         document.getElementById('formNama').value    = n;
@@ -448,7 +448,7 @@ $produk_options = $pdo->query("
         document.getElementById('formTanggal').value = t;
         document.getElementById('formStatus').value  = s;
 
-        // set kunci grup lama
+        // set kunci Pesanan lama
         document.getElementById('key_nama_old').value   = n;
         document.getElementById('key_alamat_old').value = a;
         document.getElementById('key_tanggal_old').value= t;
@@ -466,26 +466,26 @@ $produk_options = $pdo->query("
       };
     });
 
-    // Hapus Grup
-    document.querySelectorAll('.btnHapusGrup').forEach(btn => {
+    // Hapus Pesanan
+    document.querySelectorAll('.btnHapusPesanan').forEach(btn => {
       btn.onclick = () => {
         document.getElementById('hg_nama').value   = btn.dataset.namaOld || '';
         document.getElementById('hg_alamat').value = btn.dataset.alamatOld || '';
         document.getElementById('hg_tanggal').value= btn.dataset.tanggalOld || '';
         document.getElementById('hg_status').value = btn.dataset.statusOld || '';
-        modalHapusGrup.classList.remove('hidden');
+        modalHapusPesanan.classList.remove('hidden');
       };
     });
   }
   attachGroupHandlers();
 
-  document.getElementById('btnCloseHapusGrup').addEventListener('click', closeModalHapusGrup);
-  document.getElementById('btnCancelHapusGrup').addEventListener('click', closeModalHapusGrup);
+  document.getElementById('btnCloseHapusPesanan').addEventListener('click', closeModalHapusPesanan);
+  document.getElementById('btnCancelHapusPesanan').addEventListener('click', closeModalHapusPesanan);
 
   // ====== Validasi submit ======
   document.getElementById('formDistribusi').addEventListener('submit', function(e) {
     const action = document.getElementById('formAction').value;
-    if (action === 'tambah' || action === 'edit_grup') {
+    if (action === 'tambah' || action === 'edit_Pesanan') {
       const rows = [...document.querySelectorAll('.produk-row')];
       let ok = 0;
       rows.forEach(r => {

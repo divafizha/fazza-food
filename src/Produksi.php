@@ -121,7 +121,7 @@ $total_reject = $totals['total_reject'] ?? 0;
       <?php unset($_SESSION['notif']); ?>
     <?php endif; ?>
 
-    <button id="btnTambahProduk" type="button" class="inline-flex items-center gap-2 rounded-md bg-yellow-300 px-4 py-2 text-yellow-900 text-sm font-normal hover:bg-yellow-100 transition-colors">
+    <button id="btnTambahProduk" type="button" class="inline-flex items-center gap-2 rounded-md bg-yellow-400 px-4 py-2 text-yellow-900 text-sm font-normal hover:bg-yellow-300 transition-colors">
       <i class="fas fa-plus"></i> Tambah Produksi
     </button>
 
@@ -157,7 +157,7 @@ $total_reject = $totals['total_reject'] ?? 0;
                 <td class="border border-gray-300 px-2 py-1"><?php echo htmlspecialchars($item["jumlah_dikemas"]); ?> kg</td>
                 <td class="border border-gray-300 px-2 py-1"><?php echo htmlspecialchars($item["jumlah_reject"]); ?> kg</td>
                 <td class="border border-gray-300 px-2 py-1 space-x-1">
-                  <button type="button" class="btnEdit bg-[#FFD700] text-brown text-xs px-3 py-0.5 rounded hover:bg-yellow-100 transition-colors"
+                  <button type="button" class="btnEdit bg-[#FFD700] text-brown text-xs px-3 py-0.5 rounded hover:bg-yellow-200 transition-colors"
                     data-id-produksi="<?php echo $item['id_produksi']; ?>"
                     data-id-produk="<?php echo $item['id_produk']; ?>"
                     data-id-jadwal="<?php echo $item['id_jadwal']; ?>"
@@ -206,12 +206,12 @@ $total_reject = $totals['total_reject'] ?? 0;
 <!-- MODAL TAMBAH PRODUKSI -->
 <div id="modalTambah" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
   <form action="" method="POST" class="w-80 bg-white p-6 rounded shadow-lg relative">
-    <h2 class="text-black text-lg font-semibold mb-4">Input Produksi</h2>
+    <h2 class="text-black text-lg font-semibold mb-4">Tambah Produksi</h2>
     <input type="hidden" name="action" value="tambah">
 
     <div class="flex flex-col mb-3">
       <label for="id_produk" class="mb-1 text-sm font-medium text-gray-700">Nama Produk</label>
-      <select name="id_produk" id="id_produk" class="w-full px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-600" required>
+      <select name="id_produk" id="id_produk" class="w-full px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
         <option value="" disabled selected>-- Pilih Produk --</option>
         <?php foreach ($produk_options as $option): ?>
           <option value="<?php echo $option['id_produk']; ?>"><?php echo htmlspecialchars($option['nama_produk']); ?></option>
@@ -220,7 +220,7 @@ $total_reject = $totals['total_reject'] ?? 0;
     </div>
     <div class="flex flex-col mb-3">
       <label for="id_jadwal" class="mb-1 text-sm font-medium text-gray-700">Slot Jadwal Produksi</label>
-      <select name="id_jadwal" id="id_jadwal" class="w-full px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-600" required>
+      <select name="id_jadwal" id="id_jadwal" class="w-full px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
         <option value="" disabled selected>-- Pilih Slot Jadwal --</option>
         <?php foreach ($jadwal_opsi as $j): ?>
           <option value="<?= $j['id_jadwal'] ?>">
@@ -229,14 +229,14 @@ $total_reject = $totals['total_reject'] ?? 0;
         <?php endforeach; ?>
       </select>
     </div>
-    <input type="number" name="jumlah_produksi" id="jumlah_produksi" min="0" placeholder="Jumlah Produksi (kg)" class="w-full mb-3 px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-600" required />
-    <input type="number" name="jumlah_dikemas" id="jumlah_dikemas" min="0" placeholder="Jumlah Dikemas (kg)" class="w-full mb-3 px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-600" required />
+    <input type="number" name="jumlah_produksi" id="jumlah_produksi" min="0" placeholder="Jumlah Produksi (kg)" class="w-full mb-3 px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required />
+    <input type="number" name="jumlah_dikemas" id="jumlah_dikemas" min="0" placeholder="Jumlah Dikemas (kg)" class="w-full mb-3 px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required />
     <input type="number" name="jumlah_reject" id="jumlah_reject" readonly class="w-full mb-3 px-3 py-2 bg-gray-100 text-gray-400 border border-gray-300 shadow-sm" placeholder="Jumlah Reject (kg)" />
 
     <div class="text-xs text-gray-600 mb-3">Jumlah <b>reject</b> akan otomatis dihitung (<i>produksi - dikemas</i>).</div>
     <div class="text-red-500 text-xs mb-3 hidden error-message"></div>
 
-    <button type="submit" name="submit" class="w-full bg-yellow-400 text-yellow-900 py-2 rounded hover:bg-yellow-100 transition">Simpan</button>
+    <button type="submit" name="submit" class="w-full bg-yellow-400 text-yellow-900 py-2 rounded hover:bg-yellow-300 transition">Simpan</button>
     <button type="button" id="btnCloseTambah" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700" aria-label="Close modal"><i class="fas fa-times"></i></button>
   </form>
 </div>
@@ -250,7 +250,7 @@ $total_reject = $totals['total_reject'] ?? 0;
     
     <div class="flex flex-col mb-3">
       <label for="edit_id_produk" class="mb-1 text-sm font-medium text-gray-700">Nama Produk</label>
-      <select name="id_produk" id="edit_id_produk" class="w-full px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-600" required>
+      <select name="id_produk" id="edit_id_produk" class="w-full px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
         <option value="" disabled>-- Pilih Produk --</option>
         <?php foreach ($produk_options as $option): ?>
           <option value="<?php echo $option['id_produk']; ?>"><?php echo htmlspecialchars($option['nama_produk']); ?></option>
@@ -260,7 +260,7 @@ $total_reject = $totals['total_reject'] ?? 0;
     
     <div class="flex flex-col mb-3">
       <label for="edit_id_jadwal" class="mb-1 text-sm font-medium text-gray-700">Slot Jadwal Produksi</label>
-      <select name="id_jadwal" id="edit_id_jadwal" class="w-full px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-600" required>
+      <select name="id_jadwal" id="edit_id_jadwal" class="w-full px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
         <option value="" disabled selected>-- Pilih Slot Jadwal --</option>
         <?php foreach ($jadwal_all as $j): ?>
           <option value="<?= $j['id_jadwal'] ?>">
@@ -269,14 +269,14 @@ $total_reject = $totals['total_reject'] ?? 0;
         <?php endforeach; ?>
       </select>
     </div>
-    <input type="number" id="editJumlahProduksi" min="0" name="jumlah_produksi" placeholder="Jumlah Produksi (kg)" class="w-full mb-3 px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-600" required />
-    <input type="number" id="editJumlahDikemas" min="0" name="jumlah_dikemas" placeholder="Jumlah Dikemas (kg)" class="w-full mb-3 px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-600" required />
+    <input type="number" id="editJumlahProduksi" min="0" name="jumlah_produksi" placeholder="Jumlah Produksi (kg)" class="w-full mb-3 px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required />
+    <input type="number" id="editJumlahDikemas" min="0" name="jumlah_dikemas" placeholder="Jumlah Dikemas (kg)" class="w-full mb-3 px-3 py-2 rounded border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required />
     <input type="number" id="editJumlahReject" name="jumlah_reject" readonly class="w-full mb-3 px-3 py-2 bg-gray-100 text-gray-400 border border-gray-300 shadow-sm" placeholder="Jumlah Reject (kg)" />
 
     <div class="text-xs text-gray-600 mb-3">Jumlah <b>reject</b> otomatis dihitung (<i>produksi - dikemas</i>).</div>
     <div class="text-red-500 text-xs mb-3 hidden error-message"></div>
 
-    <button type="submit" class="w-full bg-yellow-700 text-white py-2 rounded hover:bg-yellow-800 transition">Simpan Perubahan</button>
+    <button type="submit" class="w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-500 py-2 rounded transition">Simpan Perubahan</button>
     <button type="button" id="btnCloseEdit" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700" aria-label="Close modal"><i class="fas fa-times"></i></button>
   </form>
 </div>

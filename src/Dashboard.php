@@ -235,24 +235,24 @@ $jadwalList = $pdo->query("
 <div id="modalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
   <div class="bg-white shadow-xl rounded-lg p-6 w-full max-w-md relative">
     <form id="jadwalForm" action="Index.php?page=dashboard" method="POST" aria-modal="true" role="dialog" aria-labelledby="formTitle">
-      <h2 id="formTitle" class="text-xl font-bold text-gray-800 mb-6">Input Jadwal</h2>
+      <h2 id="formTitle" class="text-xl font-bold text-gray-800 mb-6">Tambah Jadwal</h2>
       <input type="hidden" name="id_jadwal" id="id_jadwal">
       <div class="space-y-4">
         <div>
           <label for="tanggal" class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-          <input type="date" id="tanggal" name="tanggal" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" />
+          <input type="date" id="tanggal" name="tanggal" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-300" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Waktu</label>
           <div class="flex space-x-2 items-center">
-            <input type="time" id="jam_mulai" name="jam_mulai" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" aria-label="Jam mulai" />
+            <input type="time" id="jam_mulai" name="jam_mulai" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-300" aria-label="Jam mulai" />
             <span class="text-gray-500">-</span>
-            <input type="time" id="jam_selesai" name="jam_selesai" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" aria-label="Jam selesai" />
+            <input type="time" id="jam_selesai" name="jam_selesai" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-300" aria-label="Jam selesai" />
           </div>
         </div>
         <div>
           <label for="jenis_kegiatan" class="block text-sm font-medium text-gray-700 mb-1">Jenis Kegiatan</label>
-          <select id="jenis_kegiatan" name="jenis_kegiatan" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
+          <select id="jenis_kegiatan" name="jenis_kegiatan" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-300">
             <option value="" disabled selected>Pilih Jenis Kegiatan</option>
             <option value="Produksi">Produksi</option>
             <option value="Pengemasan">Pengemasan</option>
@@ -262,7 +262,7 @@ $jadwalList = $pdo->query("
       </div>
       <div class="flex justify-end space-x-3 mt-8">
         <button type="button" id="cancelBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors">Batal</button>
-        <button type="submit" name="submit_jadwal" class="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-colors">Simpan</button>
+        <button type="submit" name="submit_jadwal" class="bg-yellow-400 text-yellow-900 px-4 py-2 rounded-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-colors">Simpan</button>
       </div>
     </form>
   </div>
@@ -311,7 +311,7 @@ $jadwalList = $pdo->query("
     const openDeleteDialog = () => { deleteDialog.classList.remove('hidden'); };
     const closeDeleteDialog = () => { deleteDialog.classList.add('hidden'); };
     openFormBtn.addEventListener('click', () => {
-      form.reset(); hiddenIdInput.value = ''; formTitle.textContent = 'Input Jadwal Baru'; openModal(); document.getElementById('tanggal').focus();
+      form.reset(); hiddenIdInput.value = ''; formTitle.textContent = 'Tambah Jadwal Baru'; openModal(); document.getElementById('tanggal').focus();
     });
     document.querySelectorAll('.editBtn').forEach(btn => {
       btn.addEventListener('click', (e) => {
