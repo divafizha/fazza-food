@@ -10,7 +10,12 @@ if (basename(__FILE__) == basename($_SERVER["SCRIPT_FILENAME"])) {
   exit;
 }
 
-// Ambil daftar produksi yg masih punya sisa stok
+// Menggunakan PDO untuk konsistensi
+if (!isset($pdo) || !$pdo instanceof PDO) {
+    die('Koneksi database (PDO) tidak ditemukan.');
+}
+
+// Ambil daftar produksi yg masih punya sisa stok (menggunakan float/decimal)
 $produksi_list = $pdo->query("
   SELECT
     pr.id_produksi,
@@ -18,7 +23,8 @@ $produksi_list = $pdo->query("
     pr.jumlah_dikemas,
     pr.tgl_produksi,
     p.nama_produk,
-    pr.jumlah_dikemas -
+    -- Memastikan perhitungan sisa menggunakan DECIMAL/FLOAT
+    CAST(pr.jumlah_dikemas AS DECIMAL(10,2)) -
       COALESCE((SELECT SUM(stok.jumlah_stok) FROM stok WHERE stok.id_produksi = pr.id_produksi), 0) AS sisa_dikemas
   FROM produksi pr
   JOIN produk p ON pr.id_produk = p.id_produk
@@ -38,27 +44,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id_produksi = $_POST['id_produksi'];
         $id_produk = $_POST['id_produk'];
         $status_stok = $_POST['status_stok'];
-        $jumlah_stok = (int)$_POST['jumlah_stok'];
+        $jumlah_stok = (float)$_POST['jumlah_stok']; // Menggunakan float
 
         // Hitung sisa produksi aktual
-        $data = $pdo->query("SELECT jumlah_dikemas -
-          COALESCE((SELECT SUM(jumlah_stok) FROM stok WHERE id_produksi = $id_produksi), 0) AS sisa
-          FROM produksi WHERE id_produksi = $id_produksi")->fetch();
-        $sisa = (int)$data['sisa'];
+        $stmt_sisa = $pdo->prepare("SELECT CAST(jumlah_dikemas AS DECIMAL(10,2)) -
+          COALESCE((SELECT SUM(jumlah_stok) FROM stok WHERE id_produksi = ?), 0) AS sisa
+          FROM produksi WHERE id_produksi = ?");
+        $stmt_sisa->execute([$id_produksi, $id_produksi]);
+        $data = $stmt_sisa->fetch(PDO::FETCH_ASSOC);
+        $sisa = (float)$data['sisa'];
 
         if ($jumlah_stok > $sisa) {
-          $_SESSION['notif'] = ['pesan' => 'Jumlah stok melebihi sisa produksi!', 'tipe' => 'error'];
+          $_SESSION['notif'] = ['pesan' => 'Jumlah stok melebihi sisa produksi (sisa: ' . $sisa . ' kg)!', 'tipe' => 'error'];
         } else {
-          $sql = "INSERT INTO stok (id_produk, id_produksi, jumlah_stok, status_stok) VALUES (?, ?, ?, ?)";
+          $sql = "INSERT INTO stok (id_produk, id_produksi, jumlah_stok, status_stok, id_admin) VALUES (?, ?, ?, ?, ?)";
           $stmt = $pdo->prepare($sql);
-          $stmt->execute([$id_produk, $id_produksi, $jumlah_stok, $status_stok]);
+          $stmt->execute([$id_produk, $id_produksi, $jumlah_stok, $status_stok, $id_admin]);
           $_SESSION['notif'] = ['pesan' => 'Data stok dari produksi berhasil ditambahkan!', 'tipe' => 'sukses'];
         }
         break;
       case 'edit':
         $id_stok = $_POST['id_stok_edit'];
         $status_stok = $_POST['status_stok'];
-        $jumlah_stok = (int)$_POST['jumlah_stok'];
+        $jumlah_stok = (float)$_POST['jumlah_stok']; // Menggunakan float
+
         $sql = "UPDATE stok SET status_stok = ?, jumlah_stok = ? WHERE id_stok = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$status_stok, $jumlah_stok, $id_stok]);
@@ -86,6 +95,7 @@ $sql_stok = "SELECT s.id_stok, s.id_produk, s.id_produksi, p.nama_produk, s.stat
               ORDER BY s.id_stok DESC";
 $stok_list = $pdo->query($sql_stok)->fetchAll(PDO::FETCH_ASSOC);
 
+// Ringkasan stok menggunakan float
 $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumlah 
                               FROM stok 
                               GROUP BY status_stok")->fetchAll(PDO::FETCH_ASSOC);
@@ -137,7 +147,7 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
               <td class="border border-gray-300 px-3 py-2"><?php echo $index + 1; ?>.</td>
               <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($item['nama_produk']); ?></td>
               <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($item['status_stok']); ?></td>
-              <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($item['jumlah_stok']); ?> kg</td>
+              <td class="border border-gray-300 px-3 py-2"><?php echo number_format((float)$item['jumlah_stok'], 2, ',', '.'); ?> kg</td>
               <td class="border border-gray-300 px-3 py-2 space-x-2">
                 <button class="btnEdit bg-yellow-400 text-yellow-900 text-xs px-3 py-1 rounded"
                   data-id-stok="<?php echo $item['id_stok']; ?>"
@@ -145,7 +155,7 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
                   data-id-produksi="<?php echo $item['id_produksi']; ?>"
                   data-nama-produk="<?php echo htmlspecialchars($item['nama_produk']); ?>"
                   data-status="<?php echo htmlspecialchars($item['status_stok']); ?>"
-                  data-jumlah_stok="<?php echo $item['jumlah_stok']; ?>">Edit</button>
+                  data-jumlah_stok="<?php echo (float)$item['jumlah_stok']; ?>">Edit</button>
                 <button class="btnHapus bg-red-700 text-white text-xs px-3 py-1 rounded"
                   data-id-stok="<?php echo $item['id_stok']; ?>">Hapus</button>
               </td>
@@ -175,7 +185,7 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
               <tr>
                 <td class="border border-gray-300 px-3 py-2"><?php echo $index + 1; ?>.</td>
                 <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($summary['status_stok']); ?></td>
-                <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($summary['total_jumlah']); ?> kg</td>
+                <td class="border border-gray-300 px-3 py-2"><?php echo number_format((float)$summary['total_jumlah'], 2, ',', '.'); ?> kg</td>
               </tr>
             <?php endforeach; ?>
           <?php endif; ?>
@@ -197,9 +207,9 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
             <option value="<?= $p['id_produksi'] ?>"
               data-id-produk="<?= $p['id_produk'] ?>"
               data-nama-produk="<?= htmlspecialchars($p['nama_produk']) ?>"
-              data-jumlah-dikemas="<?= $p['jumlah_dikemas'] ?>"
-              data-sisa-dikemas="<?= $p['sisa_dikemas'] ?>">
-              <?= $p['nama_produk'] ?> | <?= date('d-m-Y', strtotime($p['tgl_produksi'])) ?> (Dikemas: <?= $p['jumlah_dikemas'] ?> kg, Sisa: <?= $p['sisa_dikemas'] ?> kg)
+              data-jumlah-dikemas="<?= (float)$p['jumlah_dikemas'] ?>"
+              data-sisa-dikemas="<?= (float)$p['sisa_dikemas'] ?>">
+              <?= $p['nama_produk'] ?> | <?= date('d-m-Y', strtotime($p['tgl_produksi'])) ?> (Dikemas: <?= number_format((float)$p['jumlah_dikemas'], 2) ?> kg, Sisa: <?= number_format((float)$p['sisa_dikemas'], 2) ?> kg)
             </option>
           <?php endforeach; ?>
         </select>
@@ -221,7 +231,7 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
       </div>
       <div class="mb-2">
         <label>Jumlah Stok Diambil <span id="maxStokInfo" class="text-xs text-gray-500"></span></label>
-        <input type="number" name="jumlah_stok" id="jumlah_stok_tambah" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400" min="1" required />
+        <input type="number" step="0.01" name="jumlah_stok" id="jumlah_stok_tambah" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400" min="0.01" required />
         <div id="jumlahError" class="text-xs text-red-600 mt-1 hidden"></div>
       </div>
       <div class="mb-4">
@@ -259,7 +269,7 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
       </div>
       <div class="mb-6">
         <label for="jumlah_stok_edit" class="block text-sm font-medium text-gray-700 mb-1">Jumlah (kg)</label>
-        <input type="number" name="jumlah_stok" id="jumlah_stok_edit" min="0" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required />
+        <input type="number" step="0.01" name="jumlah_stok" id="jumlah_stok_edit" min="0" class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" required />
       </div>
       <button type="submit" name="submit" class="w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-300 py-2 rounded">Simpan Perubahan</button>
     </form>
@@ -295,10 +305,12 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
     btnCancelHapus.addEventListener('click', () => closeModal(modalHapus));
 
     allModals.forEach(modal => {
-      modal.querySelector('.btnClose').addEventListener('click', () => closeModal(modal));
-      modal.addEventListener('click', e => {
-        if (e.target === modal) closeModal(modal);
-      });
+      if (modal) {
+        modal.querySelector('.btnClose').addEventListener('click', () => closeModal(modal));
+        modal.addEventListener('click', e => {
+          if (e.target === modal) closeModal(modal);
+        });
+      }
     });
 
     // Modal Tambah: isi otomatis & validasi jumlah stok
@@ -307,21 +319,26 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
     var maxStokInfo = document.getElementById('maxStokInfo');
     var errorDiv = document.getElementById('jumlahError');
 
-    selectProd.addEventListener('change', function(e) {
+    selectProd?.addEventListener('change', function(e) {
       var selected = e.target.selectedOptions[0];
-      document.getElementById('jumlah_dikemas_auto').value = selected.dataset.jumlahDikemas || '';
-      document.getElementById('sisa_dikemas_auto').value = selected.dataset.sisaDikemas || '';
+      const sisaDikemas = parseFloat(selected.dataset.sisaDikemas || '0');
+      
+      document.getElementById('jumlah_dikemas_auto').value = parseFloat(selected.dataset.jumlahDikemas || '0').toFixed(2);
+      document.getElementById('sisa_dikemas_auto').value = sisaDikemas.toFixed(2);
       document.getElementById('nama_produk_auto').value = selected.dataset.namaProduk || '';
       document.getElementById('id_produk_tambah_hidden').value = selected.dataset.idProduk || '';
+      
       jumlahStokInput.value = '';
-      jumlahStokInput.max = selected.dataset.sisaDikemas || '';
-      maxStokInfo.textContent = '(maks: ' + (selected.dataset.sisaDikemas || '-') + ' kg)';
+      jumlahStokInput.max = sisaDikemas;
+      maxStokInfo.textContent = '(maks: ' + sisaDikemas.toFixed(2) + ' kg)';
       errorDiv.classList.add('hidden');
     });
 
-    jumlahStokInput.addEventListener('input', function() {
-      var max = parseInt(jumlahStokInput.max) || 0;
-      if (parseInt(jumlahStokInput.value) > max) {
+    jumlahStokInput?.addEventListener('input', function() {
+      var max = parseFloat(jumlahStokInput.max) || 0;
+      var val = parseFloat(jumlahStokInput.value) || 0;
+
+      if (val > max) {
         errorDiv.textContent = 'Jumlah stok tidak boleh melebihi sisa produksi!';
         errorDiv.classList.remove('hidden');
       } else {
@@ -334,10 +351,9 @@ $stok_summary = $pdo->query("SELECT status_stok, SUM(jumlah_stok) as total_jumla
       button.addEventListener('click', (e) => {
         const data = e.target.dataset;
         document.getElementById('id_stok_edit').value = data.idStok;
-        // ## BARIS YANG DIUBAH ##
         document.getElementById('nama_produk_edit').value = data.namaProduk;
         document.getElementById('status_stok_edit').value = data.status;
-        document.getElementById('jumlah_stok_edit').value = data.jumlah_stok;
+        document.getElementById('jumlah_stok_edit').value = parseFloat(data.jumlahStok).toFixed(2);
         openModal(modalEdit);
       });
     });

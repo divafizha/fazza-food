@@ -58,8 +58,7 @@ function db_rollback(){ global $DB_MODE,$pdo,$conn; $DB_MODE==='pdo' ? $pdo->rol
 const TARIF_PER_KG = 2500;
 const MIN_AMBIL_KG = 20;
 
-/* ===================== DATA STOK: status siap & stok > 0 ===================== */
-/* Mengakomodasi status di DB: 'Siap dikemas' dan 'Siap dipacking' */
+/* ===================== DATA STOK ===================== */
 $sql_stok = "
   SELECT s.id_stok, s.jumlah_stok, s.status_stok, p.nama_produk, pr.tgl_produksi
   FROM stok s
@@ -76,12 +75,21 @@ try {
   $stok_list = [];
 }
 
-/* ===================== HELPER STATUS PEKERJA ===================== */
+/* ===================== HELPER STATUS PEKERJA (FIXED) ===================== */
 function updateStatusPekerjaGeneric($id_pekerja) {
-  $row = db_fetch("SELECT COUNT(*) AS c FROM riwayat_gaji WHERE id_pekerja = ? AND keterangan = 'Belum Dibayar'", [$id_pekerja]);
-  $new_status = ((int)($row['c'] ?? 0) === 0) ? 'Dibayar' : 'Belum Dibayar';
+  // Hitung total saldo gaji yang belum dibayar (termasuk Return dan Keterangan Tambahan)
+  // Menggunakan LIKE 'Belum Dibayar%' agar variasi text terhitung
+  $total_balance = db_fetch("
+    SELECT SUM(total_gaji) as total 
+    FROM riwayat_gaji 
+    WHERE id_pekerja = ? 
+    AND (keterangan LIKE 'Belum Dibayar%' OR keterangan = 'Return')
+  ", [$id_pekerja]);
+  
+  $new_status = ((float)($total_balance['total'] ?? 0) > 0) ? 'Belum Dibayar' : 'Dibayar';
   db_exec("UPDATE pekerja_lepas SET status_pembayaran = ? WHERE id_pekerja = ?", [$new_status, $id_pekerja]);
 }
+
 
 /* ===================== PROSES POST ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -108,34 +116,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       case 'ambil_stok_pekerja':
         $id_pekerja = (int)($_POST['id_pekerja_ambil'] ?? 0);
         $id_stok    = (int)($_POST['id_stok_ambil'] ?? 0);
-        $jumlah_kg  = (int)($_POST['jumlah_kg'] ?? 0);
-        $tanggal    = date('Y-m-d');
+        $jumlah_kg  = (float)($_POST['jumlah_kg'] ?? 0);
+        $tanggal    = $_POST['tanggal_ambil'] ?? date('Y-m-d'); 
+        $waktu      = $_POST['waktu_ambil'] ?? date('H:i:s');
+        
+        $timestamp_lengkap = $tanggal . ' ' . $waktu . ':00'; 
 
         if ($id_pekerja <= 0 || $id_stok <= 0) throw new Exception("Data tidak lengkap.");
         if ($jumlah_kg < MIN_AMBIL_KG) throw new Exception("Minimal ambil ".MIN_AMBIL_KG." kg!");
 
         db_begin();
 
-        // Kunci baris stok agar akurat saat concurrent
         $stok = db_fetch("SELECT * FROM stok WHERE id_stok = ? FOR UPDATE", [$id_stok]);
         if (!$stok) throw new Exception("Stok tidak ditemukan.");
-        if ((int)$stok['jumlah_stok'] < $jumlah_kg) throw new Exception("Tidak cukup stok tersedia.");
+        if ((float)$stok['jumlah_stok'] < $jumlah_kg) throw new Exception("Tidak cukup stok tersedia.");
 
         $gaji = $jumlah_kg * TARIF_PER_KG;
 
+        // Catat pengambilan
         db_exec(
           "INSERT INTO pengambilan_stok_pekerja (id_pekerja, id_stok, tanggal_ambil, jumlah_kg, total_gaji, status)
            VALUES (?, ?, ?, ?, ?, 'Sedang dikerjakan')",
-          [$id_pekerja, $id_stok, $tanggal, $jumlah_kg, $gaji]
+          [$id_pekerja, $id_stok, $timestamp_lengkap, $jumlah_kg, $gaji] 
         );
 
+        // Catat riwayat gaji
         db_exec(
-          "INSERT INTO riwayat_gaji (id_pekerja, tanggal, berat_barang_kg, tarif_per_kg, total_gaji, keterangan)
-           VALUES (?, ?, ?, ?, ?, 'Belum Dibayar')",
-          [$id_pekerja, $tanggal, $jumlah_kg, TARIF_PER_KG, $gaji]
+          "INSERT INTO riwayat_gaji (id_pekerja, tanggal, berat_barang_kg, id_stok, tarif_per_kg, total_gaji, keterangan)
+           VALUES (?, ?, ?, ?, ?, ?, 'Belum Dibayar')",
+          [$id_pekerja, $timestamp_lengkap, $jumlah_kg, $id_stok, TARIF_PER_KG, $gaji]
         );
 
-        // Kurangi stok (tanpa mengubah status_stok ke label baru)
+        // Kurangi stok
         db_exec("UPDATE stok SET jumlah_stok = GREATEST(jumlah_stok - ?, 0) WHERE id_stok = ?", [$jumlah_kg, $id_stok]);
 
         updateStatusPekerjaGeneric($id_pekerja);
@@ -158,23 +170,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   exit;
 }
 
-/* ===================== DATA UTAMA ===================== */
+/* ===================== DATA UTAMA (FIXED QUERY) ===================== */
 $search_term = $_GET['search'] ?? '';
+
+// Perbaikan Query: Menggunakan LIKE 'Belum Dibayar%' agar keterangan tambahan terbaca
 $sql_pekerja = "SELECT pl.*,
-    (SELECT COALESCE(SUM(rg.total_gaji),0) FROM riwayat_gaji rg WHERE rg.id_pekerja = pl.id_pekerja AND rg.keterangan = 'Dibayar') as total_dibayar,
-    (SELECT COALESCE(SUM(rg.total_gaji),0) FROM riwayat_gaji rg WHERE rg.id_pekerja = pl.id_pekerja AND rg.keterangan = 'Belum Dibayar') as total_belum_dibayar
+    (SELECT COALESCE(SUM(total_gaji),0) 
+     FROM riwayat_gaji rg 
+     WHERE rg.id_pekerja = pl.id_pekerja 
+     AND rg.keterangan = 'Dibayar') as total_dibayar,
+     
+    (SELECT COALESCE(SUM(
+        CASE 
+            WHEN rg.keterangan LIKE 'Belum Dibayar%' THEN rg.total_gaji 
+            WHEN rg.keterangan = 'Return' THEN rg.total_gaji 
+            ELSE 0 
+        END), 0) 
+     FROM riwayat_gaji rg 
+     WHERE rg.id_pekerja = pl.id_pekerja) as total_belum_dibayar
   FROM pekerja_lepas pl";
+
 $params = [];
 if (!empty($search_term)) { $sql_pekerja .= " WHERE pl.nama_pekerja LIKE ?"; $params[] = "%".$search_term."%"; }
 $sql_pekerja .= " ORDER BY pl.nama_pekerja ASC";
 
 try {
   $pekerja_list = db_fetch_all($sql_pekerja, $params);
-  $sum_rows = db_fetch_all("SELECT keterangan, SUM(total_gaji) AS total_per_keterangan FROM riwayat_gaji GROUP BY keterangan");
-  $summary = ['Dibayar'=>0,'Belum Dibayar'=>0];
-  foreach ($sum_rows as $r) { $summary[$r['keterangan']] = (int)($r['total_per_keterangan'] ?? 0); }
-  $summary_dibayar = $summary['Dibayar'] ?? 0;
-  $summary_belum_dibayar = $summary['Belum Dibayar'] ?? 0;
+  
+  // Perhitungan Ringkasan Finansial
+  $sum_rows = db_fetch_all("
+    SELECT keterangan, SUM(total_gaji) AS total_per_keterangan 
+    FROM riwayat_gaji 
+    GROUP BY keterangan
+  ");
+  
+  $summary_dibayar = 0;
+  $summary_belum_dibayar = 0;
+
+  foreach ($sum_rows as $r) {
+      if ($r['keterangan'] === 'Dibayar') {
+          $summary_dibayar += (float)$r['total_per_keterangan'];
+      } elseif (strpos($r['keterangan'], 'Belum Dibayar') === 0 || $r['keterangan'] === 'Return') {
+          // Gabungkan semua yang diawali 'Belum Dibayar' dan 'Return'
+          $summary_belum_dibayar += (float)$r['total_per_keterangan'];
+      }
+  }
+  
 } catch (Throwable $e) {
   $_SESSION['notif'] = ['pesan' => 'Error ambil data pekerja: '.$e->getMessage(), 'tipe' => 'error'];
   $pekerja_list = []; $summary_dibayar = 0; $summary_belum_dibayar = 0;
@@ -218,8 +259,8 @@ try {
             <td class="border border-gray-300 px-3 py-2"><?php echo $i + 1; ?>.</td>
             <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($pekerja['nama_pekerja']); ?></td>
             <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($pekerja['kontak']); ?></td>
-            <td class="border border-gray-300 px-3 py-2 text-green-700">Rp. <?php echo number_format((int)($pekerja['total_dibayar'] ?? 0), 0, ',', '.'); ?></td>
-            <td class="border border-gray-300 px-3 py-2 text-red-700">Rp. <?php echo number_format((int)($pekerja['total_belum_dibayar'] ?? 0), 0, ',', '.'); ?></td>
+            <td class="border border-gray-300 px-3 py-2 text-green-700">Rp. <?php echo number_format((float)($pekerja['total_dibayar'] ?? 0), 0, ',', '.'); ?></td>
+            <td class="border border-gray-300 px-3 py-2 <?php echo (float)($pekerja['total_belum_dibayar'] ?? 0) > 0 ? 'text-red-700' : 'text-gray-500'; ?>">Rp. <?php echo number_format((float)($pekerja['total_belum_dibayar'] ?? 0), 0, ',', '.'); ?></td>
             <td class="border border-gray-300 px-3 py-2">
               <span class="px-2 py-1 text-xs font-semibold rounded-full <?php echo ($pekerja['status_pembayaran'] ?? '') === 'Dibayar' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?>">
                 <?php echo htmlspecialchars($pekerja['status_pembayaran'] ?? 'Belum Dibayar'); ?>
@@ -251,14 +292,13 @@ try {
         <tr><th class="border border-gray-300 px-3 py-1 text-center" colspan="2">Ringkasan Finansial</th></tr>
       </thead>
       <tbody>
-        <tr><td class="border border-gray-300 px-3 py-1 font-medium">Total Gaji (Status: Dibayar)</td><td class="border border-gray-300 px-3 py-1">Rp. <?php echo number_format((int)$summary_dibayar, 0, ',', '.'); ?></td></tr>
-        <tr><td class="border border-gray-300 px-3 py-1 font-medium">Total Gaji (Status: Belum Dibayar)</td><td class="border border-gray-300 px-3 py-1">Rp. <?php echo number_format((int)$summary_belum_dibayar, 0, ',', '.'); ?></td></tr>
+        <tr><td class="border border-gray-300 px-3 py-1 font-medium">Total Gaji (Status: Dibayar)</td><td class="border border-gray-300 px-3 py-1">Rp. <?php echo number_format((float)$summary_dibayar, 0, ',', '.'); ?></td></tr>
+        <tr><td class="border border-gray-300 px-3 py-1 font-medium">Total Gaji (Status: Belum Dibayar)</td><td class="border border-gray-300 px-3 py-1">Rp. <?php echo number_format((float)$summary_belum_dibayar, 0, ',', '.'); ?></td></tr>
         <tr class="bg-gray-50"><td class="border border-gray-300 px-3 py-1 font-bold">Total Pekerja</td><td class="border border-gray-300 px-3 py-1 font-bold"><?php echo count($pekerja_list); ?> Orang</td></tr>
       </tbody>
     </table>
   </section>
 
-  <!-- MODAL AMBIL STOK -->
   <div id="modalAmbilStokPekerja" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <form action="" method="POST" class="bg-white p-6 shadow-md rounded w-80 relative">
       <button type="button" class="btnClose absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl font-bold">&times;</button>
@@ -275,30 +315,37 @@ try {
           <?php foreach ($stok_list as $stok):
             $tgl = (!empty($stok['tgl_produksi']) && $stok['tgl_produksi'] !== '0000-00-00') ? date('d-m-Y', strtotime($stok['tgl_produksi'])) : '-'; ?>
             <option value="<?php echo (int)$stok['id_stok']; ?>"
-                    data-sisa="<?php echo (int)$stok['jumlah_stok']; ?>">
-              (<?= $tgl ?>) <?= htmlspecialchars($stok['nama_produk']) ?> | Status: <?= htmlspecialchars($stok['status_stok']) ?> | Sisa: <?= (int)$stok['jumlah_stok'] ?> kg
+                      data-sisa="<?php echo (float)$stok['jumlah_stok']; ?>">
+              (<?= $tgl ?>) <?= htmlspecialchars($stok['nama_produk']) ?> | Status: <?= htmlspecialchars($stok['status_stok']) ?> | Sisa: <?= (float)$stok['jumlah_stok'] ?> kg
             </option>
           <?php endforeach; ?>
         </select>
       </div>
 
+      <div class="flex space-x-2 mb-3">
+        <div class="w-1/2">
+          <label for="tanggal_ambil" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Ambil</label>
+          <input type="date" name="tanggal_ambil" id="tanggal_ambil" class="w-full px-3 py-2 border border-gray-300 rounded" value="<?= date('Y-m-d') ?>" required>
+        </div>
+        <div class="w-1/2">
+          <label for="waktu_ambil" class="block text-sm font-medium text-gray-700 mb-1">Waktu Ambil</label>
+          <input type="time" name="waktu_ambil" id="waktu_ambil" class="w-full px-3 py-2 border border-gray-300 rounded" value="<?= date('H:i') ?>" required>
+        </div>
+      </div>
+
       <div class="mb-3">
         <label>Jumlah diambil (kg)</label>
-        <input type="number" min="<?php echo MIN_AMBIL_KG; ?>" name="jumlah_kg" id="jumlah_kg_ambil" class="w-full px-3 py-2 border border-gray-300 rounded" required>
+        <input type="number" step="0.01" min="<?php echo MIN_AMBIL_KG; ?>" name="jumlah_kg" id="jumlah_kg_ambil" class="w-full px-3 py-2 border border-gray-300 rounded" required>
         <div id="ambilStokInfo" class="text-xs text-gray-500"></div>
         <div id="ambilStokError" class="text-xs text-red-600 mt-1 hidden"></div>
       </div>
 
-      <input type="hidden" name="tanggal_ambil" id="tanggal_ambil" value="<?= date('Y-m-d') ?>">
-      <div class="mb-3 text-sm">Tanggal Ambil: <span id="showTanggalAmbil"><?= date('d-m-Y') ?></span></div>
       <div class="mb-3 text-sm">Tarif: <span class="font-mono">Rp. <?= number_format(TARIF_PER_KG, 0, ',', '.'); ?> / kg</span></div>
       <div class="mb-3 text-sm">Total Gaji: <span id="ambilStokTotalGaji" class="font-mono font-bold text-yellow-800">Rp. 0</span></div>
 
       <button type="submit" class="w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-300 py-2 rounded">Ambil & Catat Gaji</button>
     </form>
   </div>
-
-  <!-- MODAL TAMBAH -->
   <div id="modalTambah" class="fixed inset-0 bg-black bg-opacity-50 flex hidden items-center justify-center z-50">
     <form action="" method="POST" class="bg-white p-6 shadow-md rounded w-80 relative">
       <button type="button" class="btnClose absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl font-bold">&times;</button>
@@ -311,7 +358,6 @@ try {
     </form>
   </div>
 
-  <!-- MODAL EDIT -->
   <div id="modalEdit" class="fixed inset-0 bg-black bg-opacity-50 flex hidden items-center justify-center z-50">
     <form action="" method="POST" class="bg-white p-6 shadow-md rounded w-80 relative">
       <button type="button" class="btnClose absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl font-bold">&times;</button>
@@ -325,7 +371,6 @@ try {
     </form>
   </div>
 
-  <!-- MODAL HAPUS -->
   <div id="modalHapus" class="fixed inset-0 bg-black bg-opacity-50 flex hidden items-center justify-center z-50">
     <div class="w-[320px] border p-6 bg-white rounded-md relative">
       <button type="button" class="btnClose absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl font-bold">&times;</button>
@@ -368,14 +413,20 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('id_pekerja_ambil').value = id;
       document.getElementById('namaPekerjaAmbil').textContent = 'Pekerja: ' + nama;
 
+      // Set tanggal dan waktu saat ini
       const now = new Date();
-      document.getElementById('tanggal_ambil').value = now.toISOString().slice(0,10);
-      document.getElementById('showTanggalAmbil').textContent = now.toLocaleDateString('id-ID');
+      const dateString = now.toISOString().slice(0,10); // YYYY-MM-DD
+      const timeString = now.toTimeString().slice(0,5); // HH:MM
+
+      document.getElementById('tanggal_ambil').value = dateString;
+      document.getElementById('waktu_ambil').value = timeString;
 
       const jumlahInput = document.getElementById('jumlah_kg_ambil');
       jumlahInput.value = '';
       document.getElementById('ambilStokTotalGaji').textContent = 'Rp. 0';
       document.getElementById('ambilStokError').classList.add('hidden');
+      document.getElementById('id_stok_ambil').selectedIndex = 0; // Reset stok pilihan
+      document.getElementById('ambilStokInfo').textContent = ''; // Kosongkan info sisa stok awal
 
       openModal(modals.ambilStok);
     });
@@ -386,31 +437,35 @@ document.addEventListener('DOMContentLoaded', function() {
   const info = document.getElementById('ambilStokInfo');
   const error = document.getElementById('ambilStokError');
   const totalGaji = document.getElementById('ambilStokTotalGaji');
-  const MIN_AMBIL = <?php echo (int)MIN_AMBIL_KG; ?>;
+  const MIN_AMBIL = <?php echo (float)MIN_AMBIL_KG; ?>;
   const TARIF = <?php echo (int)TARIF_PER_KG; ?>;
 
   stokSelect?.addEventListener('change', () => {
-    const sisa = parseInt(stokSelect.selectedOptions[0]?.dataset.sisa || '0', 10);
-    info.textContent = 'Sisa stok: ' + sisa + ' kg (Minimal ambil ' + MIN_AMBIL + ' kg)';
+    const sisa = parseFloat(stokSelect.selectedOptions[0]?.dataset.sisa || '0');
+    info.textContent = 'Sisa stok: ' + sisa.toFixed(2) + ' kg (Minimal ambil ' + MIN_AMBIL + ' kg)';
     jumlahInput.max = sisa;
     jumlahInput.value = '';
-    error.classList.add('hidden');
-    totalGaji.textContent = 'Rp. 0';
+    jumlahInput.dispatchEvent(new Event('input')); 
   });
 
   jumlahInput?.addEventListener('input', () => {
-    const max = parseInt(jumlahInput.max || '0', 10);
-    const val = parseInt(jumlahInput.value || '0', 10);
+    const max = parseFloat(jumlahInput.max || '0');
+    const val = parseFloat(jumlahInput.value || '0');
+    
+    // Reset error
+    error.classList.add('hidden');
+
     if (val > max) {
-      error.textContent = 'Tidak boleh melebihi stok tersedia!';
+      error.textContent = 'Tidak boleh melebihi stok tersedia (' + max.toFixed(2) + ' kg)!';
       error.classList.remove('hidden');
     } else if (val > 0 && val < MIN_AMBIL) {
       error.textContent = 'Minimal ambil ' + MIN_AMBIL + ' kg.';
       error.classList.remove('hidden');
-    } else {
-      error.classList.add('hidden');
     }
-    totalGaji.textContent = 'Rp. ' + (val > 0 ? (val * TARIF).toLocaleString('id-ID') : '0');
+    
+    // Hitung gaji
+    const gaji = val * TARIF;
+    totalGaji.textContent = 'Rp. ' + (val > 0 ? Math.round(gaji).toLocaleString('id-ID') : '0');
   });
 
   // Edit & Hapus
