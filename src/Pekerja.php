@@ -75,31 +75,16 @@ try {
   $stok_list = [];
 }
 
-/* ===================== HELPER STATUS PEKERJA (FIXED) ===================== */
-function updateStatusPekerjaGeneric($id_pekerja) {
-  // Hitung total saldo gaji yang belum dibayar (termasuk Return dan Keterangan Tambahan)
-  // Menggunakan LIKE 'Belum Dibayar%' agar variasi text terhitung
-  $total_balance = db_fetch("
-    SELECT SUM(total_gaji) as total 
-    FROM riwayat_gaji 
-    WHERE id_pekerja = ? 
-    AND (keterangan LIKE 'Belum Dibayar%' OR keterangan = 'Return')
-  ", [$id_pekerja]);
-  
-  $new_status = ((float)($total_balance['total'] ?? 0) > 0) ? 'Belum Dibayar' : 'Dibayar';
-  db_exec("UPDATE pekerja_lepas SET status_pembayaran = ? WHERE id_pekerja = ?", [$new_status, $id_pekerja]);
-}
-
-
 /* ===================== PROSES POST ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $action = $_POST['action'] ?? '';
   try {
     switch ($action) {
       case 'tambah_pekerja':
+        // Dihapus: status_pembayaran dari INSERT
         db_exec(
-          "INSERT INTO pekerja_lepas (nama_pekerja, kontak, alamat, status_pembayaran, id_admin)
-           VALUES (?, ?, ?, 'Belum Dibayar', 1)",
+          "INSERT INTO pekerja_lepas (nama_pekerja, kontak, alamat, id_admin)
+           VALUES (?, ?, ?, 1)",
           [trim($_POST['nama_pekerja'] ?? ''), trim($_POST['kontak'] ?? ''), trim($_POST['alamat'] ?? '')]
         );
         $_SESSION['notif'] = ['pesan' => 'Data pekerja berhasil ditambahkan!', 'tipe' => 'sukses'];
@@ -150,7 +135,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Kurangi stok
         db_exec("UPDATE stok SET jumlah_stok = GREATEST(jumlah_stok - ?, 0) WHERE id_stok = ?", [$jumlah_kg, $id_stok]);
 
-        updateStatusPekerjaGeneric($id_pekerja);
+        // Dihapus: updateStatusPekerjaGeneric() karena status di tabel pekerja tidak lagi digunakan
+        
         db_commit();
 
         $_SESSION['notif'] = ['pesan' => 'Pengambilan stok & riwayat gaji tersimpan!', 'tipe' => 'sukses'];
@@ -170,10 +156,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   exit;
 }
 
-/* ===================== DATA UTAMA (FIXED QUERY) ===================== */
+/* ===================== DATA UTAMA ===================== */
 $search_term = $_GET['search'] ?? '';
 
-// Perbaikan Query: Menggunakan LIKE 'Belum Dibayar%' agar keterangan tambahan terbaca
 $sql_pekerja = "SELECT pl.*,
     (SELECT COALESCE(SUM(total_gaji),0) 
      FROM riwayat_gaji rg 
@@ -211,7 +196,6 @@ try {
       if ($r['keterangan'] === 'Dibayar') {
           $summary_dibayar += (float)$r['total_per_keterangan'];
       } elseif (strpos($r['keterangan'], 'Belum Dibayar') === 0 || $r['keterangan'] === 'Return') {
-          // Gabungkan semua yang diawali 'Belum Dibayar' dan 'Return'
           $summary_belum_dibayar += (float)$r['total_per_keterangan'];
       }
   }
@@ -247,13 +231,12 @@ try {
           <th class="border border-gray-300 px-3 py-2 w-32">Kontak</th>
           <th class="border border-gray-300 px-3 py-2 w-40">Total Dibayar</th>
           <th class="border border-gray-300 px-3 py-2 w-40">Total Belum Dibayar</th>
-          <th class="border border-gray-300 px-3 py-2 w-40">Status Pekerja</th>
           <th class="border border-gray-300 px-3 py-2 w-52">Aksi</th>
         </tr>
       </thead>
       <tbody>
         <?php if (empty($pekerja_list)): ?>
-          <tr><td colspan="7" class="border border-gray-300 px-3 py-4 text-center text-gray-500">Data pekerja tidak ditemukan.</td></tr>
+          <tr><td colspan="6" class="border border-gray-300 px-3 py-4 text-center text-gray-500">Data pekerja tidak ditemukan.</td></tr>
         <?php else: foreach ($pekerja_list as $i => $pekerja): ?>
           <tr>
             <td class="border border-gray-300 px-3 py-2"><?php echo $i + 1; ?>.</td>
@@ -261,11 +244,6 @@ try {
             <td class="border border-gray-300 px-3 py-2"><?php echo htmlspecialchars($pekerja['kontak']); ?></td>
             <td class="border border-gray-300 px-3 py-2 text-green-700">Rp. <?php echo number_format((float)($pekerja['total_dibayar'] ?? 0), 0, ',', '.'); ?></td>
             <td class="border border-gray-300 px-3 py-2 <?php echo (float)($pekerja['total_belum_dibayar'] ?? 0) > 0 ? 'text-red-700' : 'text-gray-500'; ?>">Rp. <?php echo number_format((float)($pekerja['total_belum_dibayar'] ?? 0), 0, ',', '.'); ?></td>
-            <td class="border border-gray-300 px-3 py-2">
-              <span class="px-2 py-1 text-xs font-semibold rounded-full <?php echo ($pekerja['status_pembayaran'] ?? '') === 'Dibayar' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?>">
-                <?php echo htmlspecialchars($pekerja['status_pembayaran'] ?? 'Belum Dibayar'); ?>
-              </span>
-            </td>
             <td class="border border-gray-300 px-3 py-2 space-x-1 flex items-center justify-center ">
               <button class="btnAmbilStok bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded inline-flex items-center gap-1"
                 data-id-pekerja="<?php echo (int)$pekerja['id_pekerja']; ?>"
